@@ -6,11 +6,12 @@ import {
 	Text,
 	View,
 	Animated,
-	Dimensions
+	Dimensions,
+	TouchableWithoutFeedback
 } from 'react-native';
-import { Icon } from 'react-native-elements'
 import { LinearGradient } from 'expo';
 import ProgressBar from '../components/ProgressBar';
+import * as Animatable from 'react-native-animatable';
 
 export default class WorbleHomeScreen extends React.Component {
 	static navigationOptions = {
@@ -19,7 +20,8 @@ export default class WorbleHomeScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			progress: 0
+			progress: 0,
+			showWorbleActions: false
 		};
 	}
 
@@ -28,7 +30,7 @@ export default class WorbleHomeScreen extends React.Component {
 	}
 	componentDidMount() {
 		this.state.progress = 0;
-		const updateProgress = ()=> {
+		const updateProgress = () => {
 			this.state.progress++;
 			if (this.state.progress >= 100) {
 				this.state.progress = 0;
@@ -43,6 +45,18 @@ export default class WorbleHomeScreen extends React.Component {
 			toValue: 1,
 			duration: 1000
 		}).start();
+	}
+	onAction() {
+		this.setState({
+			showWorbleActions: !this.state.showWorbleActions
+		});
+	}
+
+	closeWorbleActions() {
+		console.log(4545644);
+		this.setState({
+			showWorbleActions: false
+		});
 	}
 
 	render() {
@@ -61,6 +75,7 @@ export default class WorbleHomeScreen extends React.Component {
 			borderRadius: dims.width,
 		};
 		const progress = this.state.progress;
+		const showWorbleActions = this.state.showWorbleActions;
 		return (
 			<Animated.View style={[styles.container, scaledAnimatedStyle]}>
 				<LinearGradient
@@ -72,12 +87,24 @@ export default class WorbleHomeScreen extends React.Component {
 					<View style={styles.wrapper}>
 						<View style={styles.getStartedContainer}>
 							<View style={styles.actionBox}>
-								<Image
-									source={
-										require('../assets/images/worble_icon.png')
-									}
-									style={styles.actionBoxImage} />
-								<Text style={styles.actionBoxlabel}>Actions</Text>
+								<TouchableWithoutFeedback onPress={this.onAction.bind(this)} onBlur={this.closeWorbleActions.bind(this)}>
+									<View style={{alignItems: 'center'}}>
+										<Image
+											source={
+												require('../assets/images/worble_icon.png')
+											}
+											style={styles.actionBoxImage} />
+										<Text style={styles.actionBoxlabel}>Actions</Text>
+									</View>
+								</TouchableWithoutFeedback>
+								{ showWorbleActions && 
+								<Animatable.View animation="flipInX" easing="ease-out" iterationCount={1} duration={500}>
+									<View style={ { marginTop: 20, flexDirection: 'column' }}>
+										<View style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>Feed</Text></View>
+										<View style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>Bathe</Text></View>
+									</View>
+								</Animatable.View>
+								}
 							</View>
 							<View style={styles.actionBox}>
 								<Image
@@ -119,7 +146,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'space-between'
+		justifyContent: 'flex-end'
 	},
 	container: {
 		flex: 1,
@@ -177,11 +204,16 @@ const styles = StyleSheet.create({
 		opacity: 0.75,
 	},
 	getStartedContainer: {
-		alignItems: 'center',
+		position:'absolute',
+		top: 0,
+		left: 0,
+		alignItems: 'flex-start',
 		justifyContent: 'center',
 		marginTop: 50,
 		marginBottom: 0,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		marginLeft: 20,
+		marginRight: 20
 	},
 	welcomeContainer: {
 		alignItems: 'center',
@@ -285,14 +317,17 @@ const styles = StyleSheet.create({
 		color: '#2e78b7',
 	},
 	actionBox: {
-		width: 90,
-		height: 90,
+		flexBasis: 0,
+		flexGrow: 1,
 		backgroundColor: 'rgba(255, 255, 255, 0.80)',
 		marginLeft: 5,
 		marginRight: 5,
 		borderRadius: 10,
-		alignItems: 'center',
-		justifyContent: 'center',
+		paddingTop: 10,
+		paddingBottom: 10,
+		paddingLeft: 10,
+		paddingRight: 10,
+		justifyContent: 'flex-start',
 		...Platform.select({
 			ios: {
 				shadowColor: 'black',
@@ -317,6 +352,23 @@ const styles = StyleSheet.create({
 		fontFamily: 'shaky-hand-some-comic',
 		marginTop: 10,
 		letterSpacing: 1
+	},
+	actionBoxExtra: {
+		borderBottomColor: 'rgba(0,0,0, 0)',
+		borderLeftColor: 'rgba(0,0,0, 0)',
+		borderRightColor: 'rgba(0,0,0, 0)',
+		borderTopColor: 'rgba(0,0,0, 0.33)',
+		borderWidth: 1,
+		borderStyle: 'solid',
+	},
+	actionBoxExtraText: {
+		fontSize: 20,
+		color: 'rgba(0,0,0, 0.80)',
+		textAlign: 'center',
+		textTransform: 'uppercase',
+		fontFamily: 'shaky-hand-some-comic',
+		lineHeight: 48,
+		paddingTop: 5
 	},
 	groundContainer: {
 		flex: 1,

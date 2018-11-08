@@ -1,9 +1,9 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": null,
-  "packagerPort": null,
-  "packagerPid": null,
-  "expoServerNgrokUrl": null,
-  "packagerNgrokUrl": null,
-  "ngrokPid": null
+  "expoServerPort": 19000,
+  "packagerPort": 19003,
+  "packagerPid": 81399,
+  "expoServerNgrokUrl": "https://hg-w7y.asitparida.worble-of-veritas.exp.direct",
+  "packagerNgrokUrl": "https://packager.hg-w7y.asitparida.worble-of-veritas.exp.direct",
+  "ngrokPid": 81413
 }
