@@ -5,6 +5,8 @@ class WorbleService {
     actionTaken$ = this.actionTaken.asObservable();
     hideActions = new Subject();
     hideActions$ = this.hideActions.asObservable();
+    isInboxShown = new Subject();
+    isInboxShown$ = this.isInboxShown.asObservable();
     constructor() {
     }
 }

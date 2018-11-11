@@ -9,14 +9,11 @@ import {
     Dimensions,
     TouchableWithoutFeedback
 } from 'react-native';
-import WorbleManager from '../services/worbleService.js'
+import WorbleManager from '../services/WorbleManager.js'
 import * as Animatable from 'react-native-animatable';
 import { WorbleActions } from '../constants/WorbleActions';
 
 export default class WorbleActionsBar extends React.Component {
-    static navigationOptions = {
-        header: null,
-    };
     constructor(props) {
         super(props);
         this.state = {
@@ -35,15 +32,21 @@ export default class WorbleActionsBar extends React.Component {
         this.animatedValueForOpacity = new Animated.Value(0);
     }
     onAction(id) {
-        switch(id) {
-            case 'WORBLE_ACTIONS' : {
+        switch (id) {
+            case 'WORBLE_ACTIONS': {
                 if (!this.state.showWorbleActions) {
                     WorbleManager.actionTaken.next('WORBLE_ACTIONS');
-                    this.setState({
-                        showWorbleActions: !this.state.showWorbleActions
-                    });
                 }
+                this.setState({
+                    showWorbleActions: !this.state.showWorbleActions
+                });
                 break;
+            }
+            case 'OPEN_INBOX': {
+                this.setState({
+                    showWorbleActions: false
+                });
+                WorbleManager.isInboxShown.next(true);
             }
         }
     }
@@ -76,22 +79,24 @@ export default class WorbleActionsBar extends React.Component {
                             </View>
                         </TouchableWithoutFeedback>
                         {showWorbleActions &&
-                            <Animatable.View animation="flipInX" easing="ease-out" iterationCount={1} duration={500}>
-                                <View style={{ marginTop: 20, flexDirection: 'column' }}>
-                                    {WorbleViewActions }
-                                </View>
-                            </Animatable.View>
+                            <Animatable.View animation="flipInX" easing="ease-out" iterationCount={1} duration={500} ref={this.handleWorbleActionsListViewRef}>
+                            <View style={{ marginTop: 20, flexDirection: 'column' }}>
+                                {WorbleViewActions}
+                            </View>
+                        </Animatable.View>
                         }
                     </View>
                 </TouchableWithoutFeedback>
-                <View style={styles.actionBox}>
-                    <Image
-                        source={
-                            require('../assets/images/messages_icon.png')
-                        }
-                        style={styles.actionBoxImage} />
-                    <Text style={styles.actionBoxlabel}>Inbox</Text>
-                </View>
+                <TouchableWithoutFeedback onPress={this.onAction.bind(this, 'OPEN_INBOX')}>
+                    <View style={styles.actionBox}>
+                        <Image
+                            source={
+                                require('../assets/images/messages_icon.png')
+                            }
+                            style={styles.actionBoxImage} />
+                        <Text style={styles.actionBoxlabel}>Inbox</Text>
+                    </View>
+                </TouchableWithoutFeedback>
                 <View style={styles.actionBox}>
                     <Image
                         source={
