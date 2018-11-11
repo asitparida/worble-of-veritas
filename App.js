@@ -15,12 +15,19 @@ export default class App extends React.Component {
 
 	constructor(props) {
 		super(props);
-		WorbleManager.isInboxShown$.subscribe((state) => {
+		this.isInboxShownSubscription = WorbleManager.isInboxShown$.subscribe((state) => {
 			this.setState({
 				showInbox: state
 			});
 		});
 	}
+
+	componentWillUnmount() {
+        if (this.isInboxShownSubscription) {
+            this.isInboxShownSubscription.unsubscribe();
+            this.isInboxShownSubscription = null;
+        }
+    }
 
 	_onStartApp() {
 		this.setState({
@@ -98,6 +105,6 @@ const styles = StyleSheet.create({
 		top: 0,
         left: 0,
         right:0,
-		bottom: 0
+		bottom: 0 
 	}
 });

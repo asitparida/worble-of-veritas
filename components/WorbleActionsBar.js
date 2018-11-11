@@ -12,14 +12,16 @@ import {
 import WorbleManager from '../services/WorbleManager.js'
 import * as Animatable from 'react-native-animatable';
 import { WorbleActions } from '../constants/WorbleActions';
+import { Subscription } from 'rxjs';
 
 export default class WorbleActionsBar extends React.Component {
+    hideActionsSubscription = null;
     constructor(props) {
         super(props);
         this.state = {
             showWorbleActions: false
         };
-        WorbleManager.hideActions$.subscribe((data) => {
+        this.hideActionsSubscription = WorbleManager.hideActions$.subscribe((data) => {
             if (data) {
                 this.setState({
                     showWorbleActions: false
@@ -30,6 +32,12 @@ export default class WorbleActionsBar extends React.Component {
 
     componentWillMount() {
         this.animatedValueForOpacity = new Animated.Value(0);
+    }
+    componentWillUnmount() {
+        if (this.hideActionsSubscription) {
+            this.hideActionsSubscription.unsubscribe();
+            this.hideActionsSubscription = null;
+        }
     }
     onAction(id) {
         switch (id) {
