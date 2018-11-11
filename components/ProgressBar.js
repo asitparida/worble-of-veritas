@@ -27,9 +27,12 @@ export default class ProgressBar extends React.Component {
 	}
 	render() {
 		return (
-			<View style={styles.progressBarWrapper}>
-				<View style={{ flexDirection: 'row' }}>
-					<View style={this.getProgressBarStyle()} />
+			<View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+				<View style={styles.progressBarWrapper}>
+					<View style={{ flexDirection: 'row', alignItems: 'center', alignItems: 'center' }}>
+						<View style={this.getProgressBarStyle()} />
+						<Text style={styles.levelTextStyle}>Level 2</Text>
+					</View>
 				</View>
 			</View>
 		);
@@ -37,19 +40,32 @@ export default class ProgressBar extends React.Component {
 }
 let styles = StyleSheet.create({
 	progressBarWrapper: {
-		width: 200,
+		width: 150,
 		height: 30,
 		backgroundColor: '#fff',
 		borderRadius: 15,
 		overflow: 'hidden'
 	},
 	progressBar: {
-		width: 200,
+		width: 150,
 		height: 30,
 		borderRadius: 0,
 		backgroundColor: '#feca57',
 		position: 'absolute',
 		top: 0,
 		left: 0
+	},
+	levelTextStyle: {
+		lineHeight: 30,
+		fontSize: 18,
+		letterSpacing: 1,
+		color: 'rgba(0,0,0, 1)',
+		textAlign: 'center',
+		textTransform: 'uppercase',
+		fontFamily: 'shaky-hand-some-comic',
+		flexBasis: 0,
+		flexGrow: 1,
+		position: 'relative',
+		top: 2
 	}
 });
