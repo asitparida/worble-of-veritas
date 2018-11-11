@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo';
 import ProgressBar from '../components/ProgressBar';
 import * as Animatable from 'react-native-animatable';
 import WorbleActionsBar from './WorbleActionsBar';
-import WorbleManager from '../services/worbleService.js'
+import WorbleManager from '../services/worbleService.js';
 
 const ariIconSrc = require('../assets/images/ari_small.png');
 
@@ -106,9 +106,6 @@ export default class WorbleHomeScreen extends React.Component {
 			};
 		}
 		let ariCommentAnimation = this.state.ariCommentAnimation;
-		// if (showAriComments) {
-		// 	ariCommentAnimation = 'bounceOutRight';
-		// }
 		return (
 			<Animated.View style={[styles.container, scaledAnimatedStyle]}>
 				<LinearGradient
@@ -149,7 +146,8 @@ export default class WorbleHomeScreen extends React.Component {
 									</View>
 									<TouchableWithoutFeedback onPress={this.openAriComments.bind(this)}>
 										<View style={[styles.ariIconWrapper, ariIconWrapperExtra]}>
-											<Image source={ariIconSrc} style={styles.ariIconStyle} />
+											<Animatable.Image animation="jello" iterationCount="infinite" duration={1500} source={ariIconSrc} style={styles.ariIconStyle} />
+											<View style={styles.badge}><Text style={styles.badgeText}>02</Text></View>
 										</View>
 									</TouchableWithoutFeedback>
 								</View>
@@ -388,6 +386,24 @@ const styles = StyleSheet.create({
 		borderLeftColor: 'transparent',
 		borderRightColor: 'transparent',
 		borderBottomColor: 'transparent',
+	},
+	badge: {
+		position: 'absolute',
+		top: -3,
+		right: -3,
+		width: 24,
+		height: 24,
+		borderRadius: 12,
+		backgroundColor: 'rgba(255, 255, 255, 1)',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	badgeText: {
+		fontFamily: 'shaky-hand-some-comic',
+		position: 'relative',
+		top: 2,
+		fontSize: 15,
+		letterSpacing: 1
 	},
 	progressBarWrapper: {
 	}

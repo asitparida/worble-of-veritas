@@ -3,21 +3,35 @@ import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { AppLoading, Asset, Font, Icon } from 'expo';
 import LandingWelcomeScreen from './screens/LandingWelcome';
 import WorbleHomeScreen from './screens/WorbleHome';
+import Inbox from './screens/Inbox';
 
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		isAppStartable: true
+		showHome: true,
+		showLanding: false,
+		showInbox: false
 	};
+
+	constructor(props) {
+		super(props);
+		WorbleManager.isInboxShown$.subscribe((state) => {
+			this.setState({
+				showInbox: state
+			});
+		});
+	}
 
 	_onStartApp() {
 		this.setState({
-			isAppStartable: true
+			isAppStartable: true 
 		});
 	}
 
 	render() {
-		const isAppStartable = this.state.isAppStartable;
+		const showHome = this.state.showHome;
+		const showLanding = this.state.showLanding;
+		const showInbox = this.state.showInbox;
 		if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
 			return (
 				<AppLoading
@@ -30,8 +44,12 @@ export default class App extends React.Component {
 			return (
 				<View style={styles.container}>
 					{Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-					{!isAppStartable && <LandingWelcomeScreen handleOnPress={this._onStartApp.bind(this)} />}
-					{isAppStartable && <WorbleHomeScreen />}
+					{showLanding && <LandingWelcomeScreen handleOnPress={this._onStartApp.bind(this)} />}
+					{showHome && <WorbleHomeScreen />}
+					{showInbox &&
+					<View style={styles.inboxWrapperOuter}>
+						<Inbox />
+					</View>}
 				</View>
 			);
 		}
@@ -74,4 +92,13 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: '#96DDFF',
 	},
+	inboxWrapperOuter: {
+		position: 'absolute',
+		top: 0,
+        left: 0,
+        right:0,
+		bottom: 0,
+		paddingVertical: 50,
+		paddingHorizontal: 20
+	}
 });
