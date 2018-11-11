@@ -9,14 +9,11 @@ import {
     Dimensions,
     TouchableWithoutFeedback
 } from 'react-native';
-import WorbleManager from '../services/worbleService.js'
+import WorbleManager from '../services/WorbleManager.js'
 import * as Animatable from 'react-native-animatable';
 import { WorbleActions } from '../constants/WorbleActions';
 
 export default class WorbleActionsBar extends React.Component {
-    static navigationOptions = {
-        header: null,
-    };
     constructor(props) {
         super(props);
         this.state = {
@@ -82,11 +79,11 @@ export default class WorbleActionsBar extends React.Component {
                             </View>
                         </TouchableWithoutFeedback>
                         {showWorbleActions &&
-                            <Animatable.View animation="flipInX" easing="ease-out" iterationCount={1} duration={500}>
-                                <View style={{ marginTop: 20, flexDirection: 'column' }}>
-                                    {WorbleViewActions}
-                                </View>
-                            </Animatable.View>
+                            <Animatable.View animation="flipInX" easing="ease-out" iterationCount={1} duration={500} ref={this.handleWorbleActionsListViewRef}>
+                            <View style={{ marginTop: 20, flexDirection: 'column' }}>
+                                {WorbleViewActions}
+                            </View>
+                        </Animatable.View>
                         }
                     </View>
                 </TouchableWithoutFeedback>

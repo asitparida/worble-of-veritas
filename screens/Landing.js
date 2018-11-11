@@ -12,7 +12,7 @@ import {
 import { Icon } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 
-export default class LandingWelcomeScreen extends React.Component {
+export default class Landing extends React.Component {
 	static navigationOptions = {
 		header: null,
 	};

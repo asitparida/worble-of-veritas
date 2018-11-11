@@ -1,15 +1,15 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { AppLoading, Asset, Font, Icon } from 'expo';
-import LandingWelcomeScreen from './screens/LandingWelcome';
-import WorbleHomeScreen from './screens/WorbleHome';
-import Inbox from './screens/Inbox';
+import Landing from './screens/Landing';
+import Home from './screens/Home';
+import WorbleInbox from './components/WorbleInbox';
 
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		showHome: true,
-		showLanding: false,
+		showHome: false,
+		showLanding: true,
 		showInbox: false
 	};
 
@@ -24,7 +24,8 @@ export default class App extends React.Component {
 
 	_onStartApp() {
 		this.setState({
-			isAppStartable: true 
+			showLanding: false,
+			showHome: true
 		});
 	}
 
@@ -44,11 +45,11 @@ export default class App extends React.Component {
 			return (
 				<View style={styles.container}>
 					{Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-					{showLanding && <LandingWelcomeScreen handleOnPress={this._onStartApp.bind(this)} />}
-					{showHome && <WorbleHomeScreen />}
+					{showLanding && <Landing handleOnPress={this._onStartApp.bind(this)} />}
+					{showHome && <Home />}
 					{showInbox &&
 					<View style={styles.inboxWrapperOuter}>
-						<Inbox />
+						<WorbleInbox />
 					</View>}
 				</View>
 			);
@@ -97,8 +98,6 @@ const styles = StyleSheet.create({
 		top: 0,
         left: 0,
         right:0,
-		bottom: 0,
-		paddingVertical: 50,
-		paddingHorizontal: 20
+		bottom: 0
 	}
 });

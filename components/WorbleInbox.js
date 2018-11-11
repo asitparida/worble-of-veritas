@@ -1,17 +1,17 @@
 import React from 'react';
 import {
     Image,
-    Platform,
     ScrollView,
     StyleSheet,
     Text,
     View,
-    Animated,
+    TouchableOpacity,
     TouchableWithoutFeedback
 } from 'react-native';
 import { Icon, Button } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
-import WorbleManager from '../services/worbleService.js'
+import WorbleManager from '../services/WorbleManager.js'
+import { BlurView } from 'expo';
 
 const avatarSrc = require('../assets/images/avatar.png');
 
@@ -19,23 +19,26 @@ const Messages = [
     { id: 1, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
     { id: 2, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
     { id: 3, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 4, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' }
+    { id: 4, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
+    { id: 5, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
+    { id: 6, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
+    { id: 7, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
+    { id: 8, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' }
 ];
 
-export default class Inbox extends React.Component {
+export default class WorbleInbox extends React.Component {
 
     constructor(props) {
         super(props);
     }
 
-    closeInbox () {
-        console.log(787897697);
+    closeInbox() {
         WorbleManager.isInboxShown.next(false);
     }
 
     render() {
         const MessagesView = Messages.map((item, i) => {
-            return <View style={styles.messageItemWrapper} key={item.id}>
+            return <Animatable.View style={styles.messageItemWrapper} key={item.id} animation="bounceIn" delay={33 * i} useNativeDriver={true}>
                 <View style={styles.messageStatusContainer}>
                     <View style={styles.status}></View>
                 </View>
@@ -49,25 +52,32 @@ export default class Inbox extends React.Component {
                 <View style={styles.messageTimeContainer}>
                     <Text style={styles.timeInfo} >{item.time}</Text>
                 </View>
-            </View>
+            </Animatable.View>
         });
         return (
-            <Animatable.View animation="slideInDown" style={styles.inboxContainerWrapper}>
-                <TouchableWithoutFeedback onPress={this.closeInbox.bind(this)}>
-                    <View style={styles.closeContainer}><Text style={ styles.closeLabel }>x</Text></View>
-                </TouchableWithoutFeedback>
-                <View style={styles.inboxContainer}>
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.labelContainerLabel}>Inbox</Text>
+            <Animatable.View animation="fadeIn" style={styles.inboxContainerWrapper}>
+                <BlurView tint="light" intensity={75} style={styles.inboxContainerWrapper} >
+                    <TouchableWithoutFeedback onPress={this.closeInbox.bind(this)}>
+                        <View style={styles.closeContainer}><Text style={styles.closeLabel}>x</Text></View>
+                    </TouchableWithoutFeedback>
+                    <View style={styles.inboxContainer}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.labelContainerLabel}>Inbox</Text>
+                        </View>
+                        <View style={styles.messagesContainer}>
+                            <ScrollView style={styles.messagesScrollContainer}>
+                                <View style={styles.messgesWrapper}>
+                                    {MessagesView}
+                                </View>
+                            </ScrollView>
+                        </View>
                     </View>
-                    <View style={styles.messagesContainer}>
-                        <ScrollView>
-                            <View style={styles.messgesWrapper}>
-                                {MessagesView}
-                            </View>
-                        </ScrollView>
-                    </View>
-                </View>
+                    <TouchableOpacity onPress={this.closeInbox.bind(this)}>
+                        <View style={styles.closeButtonContainer}>
+                            <Text style={styles.closeButtonLabel}>Close</Text>
+                        </View>
+                    </TouchableOpacity>
+                </BlurView>
             </Animatable.View>
         );
     }
@@ -78,26 +88,36 @@ const styles = StyleSheet.create({
     inboxContainerWrapper: {
         flex: 1,
         paddingHorizontal: 0,
-        paddingVertical: 20,
         zIndex: 999,
-        backgroundColor: 'rgba(255,255,255,1)',
         flexDirection: 'column',
         borderRadius: 10,
         position: 'relative',
-        zIndex: 1
+        zIndex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.10)',
     },
     closeContainer: {
         position: 'absolute',
         right: 0,
         top: 0,
-        justifyContent:'center',
+        justifyContent: 'center',
         alignItems: 'center',
         zIndex: 2
     },
+    closeButtonContainer: {
+        height: 48,
+        backgroundColor: 'rgba(240, 240, 240, 1)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    closeButtonLabel: {
+        color: '#2980b9',
+        textTransform: 'capitalize'
+    },
     closeLabel: {
-        padding: 20,
+        width: 80,
+        lineHeight: 120,
         fontSize: 20,
-        color: 'rgba(0, 0, 0, 0.33)',
+        color: 'rgba(0, 0, 0, 0.80)',
         textAlign: 'center',
         textTransform: 'capitalize',
         fontFamily: 'shaky-hand-some-comic',
@@ -108,7 +128,7 @@ const styles = StyleSheet.create({
     },
     inboxContainer: {
         flex: 1,
-        padding: 20,
+        paddingTop: 40,
         flexDirection: 'column',
     },
     labelContainer: {
@@ -126,7 +146,13 @@ const styles = StyleSheet.create({
         letterSpacing: 1
     },
     messagesContainer: {
+        paddingHorizontal: 0,
+        paddingTop: 10,
         flex: 1,
+        backgroundColor: 'rgba(255,255,255,1)',
+    },
+    messagesScrollContainer: {
+        paddingHorizontal: 20
     },
     messgesWrapper: {
         flex: 1,
@@ -141,7 +167,7 @@ const styles = StyleSheet.create({
         borderBottomColor: 'rgba(0,0,0,0.1)',
         borderBottomWidth: 1,
         borderStyle: 'solid',
-        paddingVertical: 10
+        paddingVertical: 20
     },
     messageStatusContainer: {
         width: 30,
