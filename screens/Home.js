@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
 		fontFamily: 'shaky-hand-some-comic',
 		fontSize: 20,
 		letterSpacing: 1,
-		lineHeight: 20
+		lineHeight: 30
 	},
 	commentTip: {
 		zIndex: 998,
