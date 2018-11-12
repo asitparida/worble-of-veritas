@@ -28,7 +28,7 @@ export default class Home extends React.Component {
 			ariCommentAnimation: 'bounceInRight',
 			inboxShown: false
 		};
-		WorbleManager.actionTaken$.subscribe((data) => {
+		this.actionTakenSubscription = WorbleManager.actionTaken$.subscribe((data) => {
 			switch (data) {
 				case 'WORBLE_ACTIONS': {
 					this.worbleActionMenuOpen = true;
@@ -36,12 +36,23 @@ export default class Home extends React.Component {
 				}
 			}
 		});
-		WorbleManager.isInboxShown$.subscribe((state) => {
+		this.isInboxShownSubscription =  WorbleManager.isInboxShown$.subscribe((state) => {
 			this.setState({
 				inboxShown: state
 			});
 		});
 	}
+
+	componentWillUnmount() {
+        if (this.isInboxShownSubscription) {
+            this.isInboxShownSubscription.unsubscribe();
+            this.isInboxShownSubscription = null;
+		}
+		if (this.actionTakenSubscription) {
+            this.actionTakenSubscription.unsubscribe();
+            this.actionTakenSubscription = null;
+        }
+    }
 
 	componentWillMount() {
 		this.animatedValueForOpacity = new Animated.Value(0);
@@ -379,7 +390,7 @@ const styles = StyleSheet.create({
 		fontFamily: 'shaky-hand-some-comic',
 		fontSize: 20,
 		letterSpacing: 1,
-		lineHeight: 20
+		lineHeight: 30
 	},
 	commentTip: {
 		zIndex: 998,

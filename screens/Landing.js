@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
+import WorbleManager from '../services/WorbleManager';
 
 export default class Landing extends React.Component {
 	static navigationOptions = {

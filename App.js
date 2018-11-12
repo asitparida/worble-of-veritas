@@ -1,9 +1,11 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading, Asset, Font, Icon } from 'expo';
+import { Platform, StatusBar, StyleSheet, View, Alert } from 'react-native';
+import { AppLoading, Asset, Font, Icon, Permissions, Constants, Notifications } from 'expo';
 import Landing from './screens/Landing';
 import Home from './screens/Home';
 import WorbleInbox from './components/WorbleInbox';
+import WorbleManager from './services/WorbleManager';
+import Overlay from './screens/Overlay';
 
 export default class App extends React.Component {
 	state = {
@@ -15,14 +17,38 @@ export default class App extends React.Component {
 
 	constructor(props) {
 		super(props);
-		WorbleManager.isInboxShown$.subscribe((state) => {
+		this.isInboxShownSubscription = WorbleManager.isInboxShown$.subscribe((state) => {
 			this.setState({
 				showInbox: state
 			});
 		});
 	}
 
+	componentWillUnmount() {
+		if (this.isInboxShownSubscription) {
+			this.isInboxShownSubscription.unsubscribe();
+			this.isInboxShownSubscription = null;
+		}
+	}
+	async componentWillMount() {
+		const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+		if (status !== 'granted') {
+			await Permissions.askAsync(Permissions.NOTIFICATIONS);
+		} else {
+			const token = await Notifications.getExpoPushTokenAsync();
+			this.listenForNotifications();
+		}
+	}
+	listenForNotifications = () => {
+		Notifications.addListener(response => {
+			if (response.origin === 'selected') {
+				Alert.alert(response.data.title, response.data.message);
+			}
+		});
+	};
+
 	_onStartApp() {
+		// WorbleManager.sendNotification();
 		this.setState({
 			showLanding: false,
 			showHome: true
@@ -48,9 +74,11 @@ export default class App extends React.Component {
 					{showLanding && <Landing handleOnPress={this._onStartApp.bind(this)} />}
 					{showHome && <Home />}
 					{showInbox &&
-					<View style={styles.inboxWrapperOuter}>
-						<WorbleInbox />
-					</View>}
+						<View style={styles.inboxWrapperOuter}>
+							<WorbleInbox />
+						</View>
+					}
+					<Overlay />
 				</View>
 			);
 		}
@@ -96,8 +124,8 @@ const styles = StyleSheet.create({
 	inboxWrapperOuter: {
 		position: 'absolute',
 		top: 0,
-        left: 0,
-        right:0,
+		left: 0,
+		right: 0,
 		bottom: 0
 	}
 });
