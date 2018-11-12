@@ -8,7 +8,7 @@ import WorbleHomeScreen from './screens/WorbleHome';
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		isAppStartable: false
+		isAppStartable: true
 	};
 
 	_onStartApp() {
