@@ -59,6 +59,17 @@ export default class WorbleActionsBar extends React.Component {
         }
     }
 
+    onWorbleAction(item) {
+        if (item) {
+            if (item.action) {
+                WorbleManager.action.next(item.action);
+            }
+            this.setState({
+                showWorbleActions: false
+            });
+        }
+    }
+
     closeWorbleActions() {
         if (this.state.showWorbleActions) {
             this.setState({
@@ -70,7 +81,9 @@ export default class WorbleActionsBar extends React.Component {
     render() {
         const showWorbleActions = this.state.showWorbleActions;
         const WorbleViewActions = WorbleActions.map(x => {
-            return <View key={x.id} style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>{x.text}</Text></View>;
+            return  <TouchableWithoutFeedback onPress={this.onWorbleAction.bind(this, x)} key={x.id}>
+                <View  style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>{x.text}</Text></View>
+            </TouchableWithoutFeedback>;
         })
         return (
             <View style={styles.getStartedContainer}>

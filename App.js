@@ -5,6 +5,7 @@ import Landing from './screens/Landing';
 import Home from './screens/Home';
 import WorbleInbox from './components/WorbleInbox';
 import WorbleManager from './services/WorbleManager';
+import Overlay from './screens/Overlay';
 
 export default class App extends React.Component {
 	state = {
@@ -75,7 +76,9 @@ export default class App extends React.Component {
 					{showInbox &&
 						<View style={styles.inboxWrapperOuter}>
 							<WorbleInbox />
-						</View>}
+						</View>
+					}
+					<Overlay />
 				</View>
 			);
 		}
