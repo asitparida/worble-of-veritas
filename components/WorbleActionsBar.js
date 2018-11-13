@@ -55,6 +55,15 @@ export default class WorbleActionsBar extends React.Component {
                     showWorbleActions: false
                 });
                 WorbleManager.isInboxShown.next(true);
+                break;
+            }
+
+            case 'OPEN_VERIPEDIA': {
+                this.setState ({
+                    showWorbleActions: false
+                });
+                WorbleManager.isVeripediaShown.next(true);
+                break;
             }
         }
     }
@@ -118,14 +127,16 @@ export default class WorbleActionsBar extends React.Component {
                         <Text style={styles.actionBoxlabel}>Inbox</Text>
                     </View>
                 </TouchableWithoutFeedback>
-                <View style={styles.actionBox}>
-                    <Image
-                        source={
-                            require('../assets/images/book_icon.png')
-                        }
-                        style={styles.actionBoxImage} />
-                    <Text style={styles.actionBoxlabel}>Veripedia</Text>
-                </View>
+                <TouchableWithoutFeedback onPress={this.onAction.bind(this, 'OPEN_VERIPEDIA')}>
+                    <View style={styles.actionBox}>
+                        <Image
+                            source={
+                                require('../assets/images/book_icon.png')
+                            }
+                            style={styles.actionBoxImage} />
+                        <Text style={styles.actionBoxlabel}>Veripedia</Text>
+                    </View>
+                </TouchableWithoutFeedback>
             </View>
         );
     }

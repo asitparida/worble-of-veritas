@@ -26,7 +26,8 @@ export default class Home extends React.Component {
 			showWorbleActions: false,
 			showAriComments: false,
 			ariCommentAnimation: 'bounceInRight',
-			inboxShown: false
+			inboxShown: false,
+			VeripediaShown: false
 		};
 		this.actionTakenSubscription = WorbleManager.actionTaken$.subscribe((data) => {
 			switch (data) {
@@ -34,6 +35,7 @@ export default class Home extends React.Component {
 					this.worbleActionMenuOpen = true;
 					break;
 				}
+
 			}
 		});
 		this.isInboxShownSubscription =  WorbleManager.isInboxShown$.subscribe((state) => {

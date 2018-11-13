@@ -10,6 +10,17 @@ class WorbleService {
 	isInboxShown$ = this.isInboxShown.asObservable();
 	action = new Subject();
 	action$ = this.action.asObservable();
+	hideActions = new Subject();
+	hideActions$ = this.hideActions.asObservable();
+
+	// actionTaken = new Subject();
+	// actionTaken$ = this.actionTaken.asObservable();
+	// hideActions = new Subject();
+	// hideActions$ = this.hideActions.asObservable();
+	isVeripediaShown = new Subject();
+	isVeripediaShown$ = this.isVeripediaShown.asObservable();
+	// action = new Subject();
+	// action$ = this.action.asObservable();
 	constructor() {
 	}
 	sendNotification() {

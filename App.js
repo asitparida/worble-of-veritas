@@ -1,28 +1,33 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View, Alert } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View, Alert, Text } from 'react-native';
 import { AppLoading, Asset, Font, Icon, Permissions, Constants, Notifications } from 'expo';
 import Landing from './screens/Landing';
 import Home from './screens/Home';
 import WorbleInbox from './components/WorbleInbox';
 import WorbleManager from './services/WorbleManager';
 import Overlay from './screens/Overlay';
+import Veripedia from './components/Veripedia';
 
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-<<<<<<< HEAD
-		isAppStartable: true
-=======
+		isAppStartable: true,
 		showHome: false,
 		showLanding: true,
-		showInbox: false
+		showInbox: false,
+		showVeripedia: false
 	};
-
 	constructor(props) {
 		super(props);
 		this.isInboxShownSubscription = WorbleManager.isInboxShown$.subscribe((state) => {
 			this.setState({
 				showInbox: state
+			});
+		});
+
+		this.isVeripediaShownSubscription = WorbleManager.isVeripediaShown$.subscribe((state) => {
+			this.setState({
+				showVeripedia: state
 			});
 		});
 	}
@@ -48,7 +53,6 @@ export default class App extends React.Component {
 				Alert.alert(response.data.title, response.data.message);
 			}
 		});
->>>>>>> 9b96288773e6d3d79d9c8a0ab9b9aa5bcd57f870
 	};
 
 	_onStartApp() {
@@ -63,6 +67,7 @@ export default class App extends React.Component {
 		const showHome = this.state.showHome;
 		const showLanding = this.state.showLanding;
 		const showInbox = this.state.showInbox;
+		const showVeripedia = this.state.showVeripedia;
 		if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
 			return (
 				<AppLoading
@@ -80,6 +85,11 @@ export default class App extends React.Component {
 					{showInbox &&
 						<View style={styles.inboxWrapperOuter}>
 							<WorbleInbox />
+						</View>
+					}
+					{showVeripedia &&
+						<View style={styles.veripediaWrapperOuter}>
+							<Veripedia/>
 						</View>
 					}
 					<Overlay />
@@ -126,6 +136,13 @@ const styles = StyleSheet.create({
 		backgroundColor: '#96DDFF',
 	},
 	inboxWrapperOuter: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0
+	},
+	veripediaWrapperOuter: {
 		position: 'absolute',
 		top: 0,
 		left: 0,

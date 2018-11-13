@@ -13,27 +13,23 @@ import * as Animatable from 'react-native-animatable';
 import WorbleManager from '../services/WorbleManager.js'
 import { BlurView } from 'expo';
 
-const avatarSrc = require('../assets/images/avatar.png');
+// const avatarSrc = require('../assets/images/avatar.png');
 
 const Messages = [
-    { id: 1, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 2, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 3, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 4, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 5, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 6, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 7, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 8, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' }
+    { id: 1, name: 'Fact', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
+    { id: 2, name: 'Fact', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
+    { id: 3, name: 'Fact', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
 ];
 
-export default class WorbleInbox extends React.Component {
+export default class Veripedia extends React.Component {
 
     constructor(props) {
         super(props);
-    }
+        
+  	}
 
-    closeInbox() {
-        WorbleManager.isInboxShown.next(false);
+    closeVeripedia() {
+        WorbleManager.isVeripediaShown.next(false);
     }
 
     render() {
@@ -42,11 +38,7 @@ export default class WorbleInbox extends React.Component {
                 <View style={styles.messageStatusContainer}>
                     <View style={styles.status}></View>
                 </View>
-                <View style={styles.messagePhotoContainer}>
-                    <Image style={styles.avatarImage} source={avatarSrc}></Image>
-                </View>
                 <View style={styles.messageDetailsContainer}>
-                    <Text style={styles.avatarName}>{item.name}</Text>
                     <Text style={styles.avatarMessage} numberOfLines={1}>{item.message}</Text>
                 </View>
                 <View style={styles.messageTimeContainer}>
@@ -55,14 +47,14 @@ export default class WorbleInbox extends React.Component {
             </Animatable.View>
         });
         return (
-            <Animatable.View animation="fadeIn" style={styles.inboxContainerWrapper}>
-                <BlurView tint="light" intensity={75} style={styles.inboxContainerWrapper} >
-                    <TouchableWithoutFeedback onPress={this.closeInbox.bind(this)}>
+            <Animatable.View animation="fadeIn" style={styles.veripediaContainerWrapper}>
+                <BlurView tint="light" intensity={75} style={styles.veripediaContainerWrapper} >
+                    <TouchableWithoutFeedback onPress={this.closeVeripedia.bind(this)}>
                         <View style={styles.closeContainer}><Text style={styles.closeLabel}>x</Text></View>
                     </TouchableWithoutFeedback>
-                    <View style={styles.inboxContainer}>
+                    <View style={styles.veripediaContainer}>
                         <View style={styles.labelContainer}>
-                            <Text style={styles.labelContainerLabel}>Inbox</Text>
+                            <Text style={styles.labelContainerLabel}>Veripedia</Text>
                         </View>
                         <View style={styles.messagesContainer}>
                             <ScrollView style={styles.messagesScrollContainer}>
@@ -72,7 +64,7 @@ export default class WorbleInbox extends React.Component {
                             </ScrollView>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={this.closeInbox.bind(this)}>
+                    <TouchableOpacity onPress={this.closeVeripedia.bind(this)}>
                         <View style={styles.closeButtonContainer}>
                             <Text style={styles.closeButtonLabel}>Close</Text>
                         </View>
@@ -85,7 +77,7 @@ export default class WorbleInbox extends React.Component {
 }
 
 const styles = StyleSheet.create({
-    inboxContainerWrapper: {
+    veripediaContainerWrapper: {
         flex: 1,
         paddingHorizontal: 0,
         zIndex: 999,
@@ -126,7 +118,7 @@ const styles = StyleSheet.create({
         textShadowRadius: 4,
         letterSpacing: 1
     },
-    inboxContainer: {
+    veripediaContainer: {
         flex: 1,
         paddingTop: 40,
         flexDirection: 'column',
