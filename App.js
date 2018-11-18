@@ -6,13 +6,17 @@ import Home from './screens/Home';
 import WorbleInbox from './components/WorbleInbox';
 import WorbleManager from './services/WorbleManager';
 import Overlay from './screens/Overlay';
+import AriIntroduction from './screens/IntroductionAri';
+import AppProgress from './components/AppProgress';
 
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		showHome: false,
-		showLanding: true,
-		showInbox: false
+		showHome: true,
+		showLanding: false,
+		showInbox: false,
+		showAriIntroduction: false,
+		showAppLoader: true
 	};
 
 	constructor(props) {
@@ -51,14 +55,19 @@ export default class App extends React.Component {
 		// WorbleManager.sendNotification();
 		this.setState({
 			showLanding: false,
-			showHome: true
+			showAriIntroduction: true
+		});
+	}
+	
+	_onAriWelcomeDone() {
+		this.setState({
+			showHome: true,
+			showAriIntroduction: false
 		});
 	}
 
 	render() {
-		const showHome = this.state.showHome;
-		const showLanding = this.state.showLanding;
-		const showInbox = this.state.showInbox;
+		const { showHome, showAriIntroduction, showLanding, showInbox, showAppLoader} =  this.state;
 		if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
 			return (
 				<AppLoading
@@ -72,10 +81,16 @@ export default class App extends React.Component {
 				<View style={styles.container}>
 					{Platform.OS === 'ios' && <StatusBar barStyle="default" />}
 					{showLanding && <Landing handleOnPress={this._onStartApp.bind(this)} />}
+					{showAriIntroduction && <AriIntroduction handleOnPress={this._onAriWelcomeDone.bind(this)} />}
 					{showHome && <Home />}
 					{showInbox &&
 						<View style={styles.inboxWrapperOuter}>
 							<WorbleInbox />
+						</View>
+					}
+					{showAppLoader && 
+						<View style={styles.inboxWrapperOuter}>
+							<AppProgress />
 						</View>
 					}
 					<Overlay />

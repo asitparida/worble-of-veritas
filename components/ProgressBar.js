@@ -17,6 +17,9 @@ import { hidden } from 'ansi-colors';
 import Colors from '../constants/Colors';
 
 export default class ProgressBar extends React.Component {
+	constructor(props) {
+		super(props);
+	}
 	getProgressBarStyle = () => {
 		const progress = this.props.progress;
 		const progresBarWidth = (progress / 100) * 200;
@@ -26,12 +29,19 @@ export default class ProgressBar extends React.Component {
 		});
 	}
 	render() {
+		const label = this.props.label || 'LEVEL #'
+		let widthStyles = {};
+		if (this.props.width) {
+			widthStyles = {
+				width: this.props.width
+			};
+		}
 		return (
 			<View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-				<View style={styles.progressBarWrapper}>
+				<View style={[styles.progressBarWrapper, widthStyles]}>
 					<View style={{ flexDirection: 'row', alignItems: 'center', alignItems: 'center' }}>
 						<View style={this.getProgressBarStyle()} />
-						<Text style={styles.levelTextStyle}>Level 2</Text>
+						<Text style={styles.levelTextStyle}>{label}</Text>
 					</View>
 				</View>
 			</View>
@@ -44,7 +54,18 @@ let styles = StyleSheet.create({
 		height: 30,
 		backgroundColor: '#fff',
 		borderRadius: 15,
-		overflow: 'hidden'
+		overflow: 'hidden',
+		...Platform.select({
+			ios: {
+				shadowColor: 'rgba(0,0,0,1)',
+				shadowOffset: { height: 0 },
+				shadowOpacity: 1,
+				shadowRadius: 1,
+			},
+			android: {
+				elevation: 20,
+			},
+		}),
 	},
 	progressBar: {
 		width: 150,
@@ -58,7 +79,7 @@ let styles = StyleSheet.create({
 	levelTextStyle: {
 		lineHeight: 30,
 		fontSize: 18,
-		letterSpacing: 1,
+		letterSpacing: 2,
 		color: 'rgba(0,0,0, 1)',
 		textAlign: 'center',
 		textTransform: 'uppercase',

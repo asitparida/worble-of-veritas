@@ -1,5 +1,6 @@
-import { Subject } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { Notifications } from 'expo';
+import { Worble } from '../models/Worble';
 
 class WorbleService {
 	actionTaken = new Subject();
@@ -10,6 +11,8 @@ class WorbleService {
 	isInboxShown$ = this.isInboxShown.asObservable();
 	action = new Subject();
 	action$ = this.action.asObservable();
+	worbleState = new Subject();
+	worbleState$ = this.worbleState.asObservable();
 	constructor() {
 	}
 	sendNotification() {

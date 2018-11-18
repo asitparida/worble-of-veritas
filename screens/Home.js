@@ -9,7 +9,7 @@ import {
 	Dimensions,
 	TouchableWithoutFeedback
 } from 'react-native';
-import { LinearGradient } from 'expo';
+import { LinearGradient, BlurView } from 'expo';
 import ProgressBar from '../components/ProgressBar';
 import * as Animatable from 'react-native-animatable';
 import WorbleActionsBar from '../components/WorbleActionsBar';
@@ -26,7 +26,11 @@ export default class Home extends React.Component {
 			showWorbleActions: false,
 			showAriComments: false,
 			ariCommentAnimation: 'bounceInRight',
-			inboxShown: false
+			inboxShown: false,
+			worbleState: {
+				name: 'Harold',
+				imgSrc: require('../assets/images/worble.png')
+			}
 		};
 		this.actionTakenSubscription = WorbleManager.actionTaken$.subscribe((data) => {
 			switch (data) {
@@ -36,23 +40,32 @@ export default class Home extends React.Component {
 				}
 			}
 		});
-		this.isInboxShownSubscription =  WorbleManager.isInboxShown$.subscribe((state) => {
+		this.isInboxShownSubscription = WorbleManager.isInboxShown$.subscribe((state) => {
 			this.setState({
 				inboxShown: state
+			});
+		});
+		this.worbleStateSusbscription = WorbleManager.worbleState$.subscribe((state) => {
+			this.setState({
+				worbleState: state
 			});
 		});
 	}
 
 	componentWillUnmount() {
-        if (this.isInboxShownSubscription) {
-            this.isInboxShownSubscription.unsubscribe();
-            this.isInboxShownSubscription = null;
+		if (this.isInboxShownSubscription) {
+			this.isInboxShownSubscription.unsubscribe();
+			this.isInboxShownSubscription = null;
 		}
 		if (this.actionTakenSubscription) {
-            this.actionTakenSubscription.unsubscribe();
-            this.actionTakenSubscription = null;
-        }
-    }
+			this.actionTakenSubscription.unsubscribe();
+			this.actionTakenSubscription = null;
+		}
+		if (this.worbleStateSusbscription) {
+			this.worbleStateSusbscription.unsubscribe();
+			this.worbleStateSusbscription = null;
+		}
+	}
 
 	componentWillMount() {
 		this.animatedValueForOpacity = new Animated.Value(0);
@@ -74,6 +87,10 @@ export default class Home extends React.Component {
 			toValue: 1,
 			duration: 1000
 		}).start();
+		WorbleManager.worbleState.next({
+			name: 'Harold',
+			imgSrc: require('../assets/images/happyworble.gif')
+		});
 	}
 
 	closeWorbleActions() {
@@ -115,6 +132,13 @@ export default class Home extends React.Component {
 			width: worbleWidth,
 			height: worbleWidth
 		}
+		const dimension = worbleWidth / 3.25;
+		const worbleShadowimensions = {
+			height: dimension,
+			width: dimension,
+			marginTop: dimension + 20,
+			borderRadius: dimension / 2,
+		}
 		const showAriComments = this.state.showAriComments;
 		let ariIconWrapperExtra = {};
 		if (showAriComments) {
@@ -124,6 +148,7 @@ export default class Home extends React.Component {
 		}
 		let ariCommentAnimation = this.state.ariCommentAnimation;
 		let showActionBar = !this.state.inboxShown;
+		let worbleState = this.state.worbleState;
 		return (
 			<Animated.View style={[styles.container, scaledAnimatedStyle]}>
 				<LinearGradient
@@ -136,12 +161,13 @@ export default class Home extends React.Component {
 						<View style={styles.wrapper}>
 							<View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
 								<View style={styles.welcomeContainer} >
-									<Text style={styles.petName}>Groot</Text>
-									<Image
-										source={
-											require('../assets/images/worble.png')
-										}
-										style={[styles.welcomeImage, worbleDimensions]} />
+									<Text style={styles.petName}>{worbleState.name}</Text>
+									<View style={[styles.worbleDimensions, { position: 'relative' }]} >
+										<Image
+											source={worbleState.imgSrc}
+											style={[styles.welcomeImage, worbleDimensions]} />
+										<BlurView tint="dark" intensity={75} style={[styles.shadowBar, worbleShadowimensions]} />
+									</View>
 									<View style={styles.progressBarWrapper}>
 										<ProgressBar progress={progress} />
 									</View>
@@ -211,17 +237,21 @@ const styles = StyleSheet.create({
 		marginTop: 80,
 		marginBottom: 0,
 		backgroundColor: 'rgba(255,255,255, 0)',
+		position: 'relative',
+		zIndex: 2
 	},
 	welcomeImage: {
+		position: 'relative',
+		zIndex: 2,
 		resizeMode: 'contain',
 		marginTop: 20,
 		marginLeft: -10,
 		...Platform.select({
 			ios: {
 				shadowColor: '#000',
-				shadowOffset: { width: 0, height: 2 },
-				shadowOpacity: 0.5,
-				shadowRadius: 1,
+				shadowOffset: { width: 0, height: 0 },
+				shadowOpacity: 0.10,
+				shadowRadius: 10,
 			},
 			android: {
 				elevation: 20,
@@ -426,6 +456,19 @@ const styles = StyleSheet.create({
 		letterSpacing: 1
 	},
 	progressBarWrapper: {
-		marginTop: 30
+		marginTop: 40
+	},
+	shadowBar: {
+		position: 'absolute',
+		alignSelf: 'center',
+		backgroundColor: 'rgba(0,0,0,0.05)',
+		zIndex: 1,
+		bottom: -20,
+		borderWidth: 2,
+		borderColor: 'rgba(0,0,0,0.05)',
+		transform: [
+			{ scaleX: 3 },
+			{ translateX: -3 }
+		]
 	}
 });
