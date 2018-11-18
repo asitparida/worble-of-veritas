@@ -29,6 +29,7 @@ const Messages = [
 
 export default class AppProgress extends React.Component {
 
+    updateProgressInterval;
     constructor(props) {
         super(props);
         this.state = {
@@ -41,6 +42,7 @@ export default class AppProgress extends React.Component {
     }
 
     componentDidMount() {
+        this.updateProgressInterval = true;
         const indeterminate = this.props.indeterminate || true;
         this.state.progress = 0;
         if (indeterminate) {
@@ -49,13 +51,21 @@ export default class AppProgress extends React.Component {
                 if (this.state.progress >= 100) {
                     this.state.progress = 0;
                 }
-                this.setState({
-                    progress: this.state.progress
-                })
-                requestAnimationFrame(updateProgress);
+                if (this.updateProgressInterval) {
+                    this.setState({
+                        progress: this.state.progress
+                    })
+                    requestAnimationFrame(updateProgress);
+                }
             };
-            requestAnimationFrame(updateProgress);
+            if (this.updateProgressInterval) {
+                requestAnimationFrame(updateProgress);
+            }
         }
+    }
+
+    componentWillUnmount() {
+        this.updateProgressInterval = false;
     }
 
 

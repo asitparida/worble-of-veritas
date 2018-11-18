@@ -14,6 +14,7 @@ import ProgressBar from '../components/ProgressBar';
 import * as Animatable from 'react-native-animatable';
 import WorbleActionsBar from '../components/WorbleActionsBar';
 import WorbleManager from '../services/WorbleManager.js';
+import AppProgress from '../components/AppProgress';
 
 const ariIconSrc = require('../assets/images/ari_small.png');
 
@@ -27,11 +28,25 @@ export default class Home extends React.Component {
 			showAriComments: false,
 			ariCommentAnimation: 'bounceInRight',
 			inboxShown: false,
+			showHomeProgressLoader: false,
 			worbleState: {
 				name: 'Harold',
 				imgSrc: require('../assets/images/worble.png')
 			}
 		};
+	}
+
+	componentWillUnmount() {
+		[this.isInboxShownSubscription, this.actionTakenSubscription, this.worbleStateSusbscription].forEach(x => {
+			if (x) {
+				x.unsubscribe();
+				x = null;
+			}	
+		});
+	}
+
+	componentWillMount() {
+		this.animatedValueForOpacity = new Animated.Value(0);
 		this.actionTakenSubscription = WorbleManager.actionTaken$.subscribe((data) => {
 			switch (data) {
 				case 'WORBLE_ACTIONS': {
@@ -50,25 +65,11 @@ export default class Home extends React.Component {
 				worbleState: state
 			});
 		});
-	}
-
-	componentWillUnmount() {
-		if (this.isInboxShownSubscription) {
-			this.isInboxShownSubscription.unsubscribe();
-			this.isInboxShownSubscription = null;
-		}
-		if (this.actionTakenSubscription) {
-			this.actionTakenSubscription.unsubscribe();
-			this.actionTakenSubscription = null;
-		}
-		if (this.worbleStateSusbscription) {
-			this.worbleStateSusbscription.unsubscribe();
-			this.worbleStateSusbscription = null;
-		}
-	}
-
-	componentWillMount() {
-		this.animatedValueForOpacity = new Animated.Value(0);
+		this.homeProgressLoaderSubscription = WorbleManager.homeProgressLoader$.subscribe((state) => {
+			this.setState({
+				showHomeProgressLoader: state
+			});
+		});
 	}
 	componentDidMount() {
 		this.state.progress = 0;
@@ -149,6 +150,7 @@ export default class Home extends React.Component {
 		let ariCommentAnimation = this.state.ariCommentAnimation;
 		let showActionBar = !this.state.inboxShown;
 		let worbleState = this.state.worbleState;
+		const showHomeProgressLoader = this.state.showHomeProgressLoader;
 		return (
 			<Animated.View style={[styles.container, scaledAnimatedStyle]}>
 				<LinearGradient
@@ -187,6 +189,11 @@ export default class Home extends React.Component {
 										</View>
 									</Animatable.View>
 								</TouchableWithoutFeedback>
+							}
+							{showHomeProgressLoader && 
+								<View style={styles.homeProgressLoader}>
+									<AppProgress />
+								</View>
 							}
 							<View style={styles.tabBarInfoContainer}>
 								<View style={styles.tabBarInfoContainerWrapper}>
@@ -268,7 +275,8 @@ const styles = StyleSheet.create({
 		marginBottom: 0,
 		flexDirection: 'row',
 		marginLeft: 20,
-		marginRight: 20
+		marginRight: 20,
+		zIndex: 3
 	},
 	getStartedText: {
 		fontSize: 36,
@@ -312,6 +320,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start',
 		backgroundColor: 'rgba(0,0,0,0.0)',
 		position: 'absolute',
+		zIndex: 3,
 		bottom: 0,
 		marginBottom: 0,
 		borderRadius: 30,
@@ -470,5 +479,16 @@ const styles = StyleSheet.create({
 			{ scaleX: 3 },
 			{ translateX: -3 }
 		]
+	},
+	homeProgressLoader: {
+		position: 'absolute',
+		height: '100%',
+		width: '100%',
+		top: 0,
+		flexGrow: 1,
+		flexBasis: 0,
+		flex: 1,
+		left: 0,
+		zIndex: 2
 	}
 });

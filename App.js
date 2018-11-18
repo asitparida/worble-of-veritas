@@ -12,27 +12,24 @@ import AppProgress from './components/AppProgress';
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		showHome: true,
-		showLanding: false,
+		showHome: false,
+		showLanding: true,
 		showInbox: false,
 		showAriIntroduction: false,
-		showAppLoader: true
+		showAppLoader: false
 	};
 
 	constructor(props) {
 		super(props);
-		this.isInboxShownSubscription = WorbleManager.isInboxShown$.subscribe((state) => {
-			this.setState({
-				showInbox: state
-			});
-		});
 	}
 
 	componentWillUnmount() {
-		if (this.isInboxShownSubscription) {
-			this.isInboxShownSubscription.unsubscribe();
-			this.isInboxShownSubscription = null;
-		}
+		[this.isInboxShownSubscription, this.appProgressLoaderSubscription].forEach(x => {
+			if (x) {
+				x.unsubscribe();
+				x = null;
+			}	
+		});
 	}
 	async componentWillMount() {
 		const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
@@ -42,6 +39,16 @@ export default class App extends React.Component {
 			const token = await Notifications.getExpoPushTokenAsync();
 			this.listenForNotifications();
 		}
+		this.isInboxShownSubscription = WorbleManager.isInboxShown$.subscribe((state) => {
+			this.setState({
+				showInbox: state
+			});
+		});
+		this.appProgressLoaderSubscription = WorbleManager.appProgressLoader$.subscribe((state) => {
+			this.setState({
+				showAppLoader: state
+			});
+		});
 	}
 	listenForNotifications = () => {
 		Notifications.addListener(response => {
@@ -50,6 +57,15 @@ export default class App extends React.Component {
 			}
 		});
 	};
+
+	componentDidMount() {
+		// setTimeout(() => {
+		// 	WorbleManager.appProgressLoader.next(true);
+		// 	setTimeout(() => {
+		// 		WorbleManager.appProgressLoader.next(false);
+		// 	}, 6000);
+		// }, 3000);
+	}
 
 	_onStartApp() {
 		// WorbleManager.sendNotification();

@@ -13,6 +13,10 @@ class WorbleService {
 	action$ = this.action.asObservable();
 	worbleState = new Subject();
 	worbleState$ = this.worbleState.asObservable();
+	homeProgressLoader = new Subject();
+	homeProgressLoader$ = this.homeProgressLoader.asObservable();
+	appProgressLoader = new Subject();
+	appProgressLoader$ = this.appProgressLoader.asObservable();
 	constructor() {
 	}
 	sendNotification() {
