@@ -12,8 +12,8 @@ import AppProgress from './components/AppProgress';
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		showHome: false,
-		showLanding: true,
+		showHome: true,
+		showLanding: false,
 		showInbox: false,
 		showAriIntroduction: false,
 		showAppLoader: false

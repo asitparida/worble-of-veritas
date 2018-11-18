@@ -15,6 +15,7 @@ import * as Animatable from 'react-native-animatable';
 import WorbleActionsBar from '../components/WorbleActionsBar';
 import WorbleManager from '../services/WorbleManager.js';
 import AppProgress from '../components/AppProgress';
+import WorbleHolder from '../components/WorbleHolder';
 
 const ariIconSrc = require('../assets/images/ari_small.png');
 
@@ -37,7 +38,7 @@ export default class Home extends React.Component {
 	}
 
 	componentWillUnmount() {
-		[this.isInboxShownSubscription, this.actionTakenSubscription, this.worbleStateSusbscription].forEach(x => {
+		[this.isInboxShownSubscription, this.actionTakenSubscription, this.worbleStateSusbscription, this.homeProgressLoaderSubscription].forEach(x => {
 			if (x) {
 				x.unsubscribe();
 				x = null;
@@ -92,6 +93,7 @@ export default class Home extends React.Component {
 			name: 'Harold',
 			imgSrc: require('../assets/images/happyworble.gif')
 		});
+
 	}
 
 	closeWorbleActions() {
@@ -164,12 +166,7 @@ export default class Home extends React.Component {
 							<View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
 								<View style={styles.welcomeContainer} >
 									<Text style={styles.petName}>{worbleState.name}</Text>
-									<View style={[styles.worbleDimensions, { position: 'relative' }]} >
-										<Image
-											source={worbleState.imgSrc}
-											style={[styles.welcomeImage, worbleDimensions]} />
-										<BlurView tint="dark" intensity={75} style={[styles.shadowBar, worbleShadowimensions]} />
-									</View>
+									<WorbleHolder worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowimensions} />
 									<View style={styles.progressBarWrapper}>
 										<ProgressBar progress={progress} />
 									</View>
@@ -246,24 +243,6 @@ const styles = StyleSheet.create({
 		backgroundColor: 'rgba(255,255,255, 0)',
 		position: 'relative',
 		zIndex: 2
-	},
-	welcomeImage: {
-		position: 'relative',
-		zIndex: 2,
-		resizeMode: 'contain',
-		marginTop: 20,
-		marginLeft: -10,
-		...Platform.select({
-			ios: {
-				shadowColor: '#000',
-				shadowOffset: { width: 0, height: 0 },
-				shadowOpacity: 0.10,
-				shadowRadius: 10,
-			},
-			android: {
-				elevation: 20,
-			}
-		})
 	},
 	getStartedContainer: {
 		position: 'absolute',
@@ -465,20 +444,7 @@ const styles = StyleSheet.create({
 		letterSpacing: 1
 	},
 	progressBarWrapper: {
-		marginTop: 40
-	},
-	shadowBar: {
-		position: 'absolute',
-		alignSelf: 'center',
-		backgroundColor: 'rgba(0,0,0,0.05)',
-		zIndex: 1,
-		bottom: -20,
-		borderWidth: 2,
-		borderColor: 'rgba(0,0,0,0.05)',
-		transform: [
-			{ scaleX: 3 },
-			{ translateX: -3 }
-		]
+		marginTop: 50
 	},
 	homeProgressLoader: {
 		position: 'absolute',
