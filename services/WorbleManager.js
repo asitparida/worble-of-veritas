@@ -13,6 +13,10 @@ class WorbleService {
 	action$ = this.action.asObservable();
 	worbleState = new Subject();
 	worbleState$ = this.worbleState.asObservable();
+	worbleName = new Subject();
+	worbleName$ = this.worbleName.asObservable();
+	worbleImgSrc = new Subject();
+	worbleImgSrc$ = this.worbleImgSrc.asObservable();
 	homeProgressLoader = new Subject();
 	homeProgressLoader$ = this.homeProgressLoader.asObservable();
 	appProgressLoader = new Subject();

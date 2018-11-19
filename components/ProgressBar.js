@@ -1,20 +1,10 @@
 import React from 'react';
 import {
-	Image,
 	Platform,
-	ScrollView,
 	StyleSheet,
 	Text,
-	TouchableOpacity,
-	View,
-	Animated
+	View
 } from 'react-native';
-import { WebBrowser } from 'expo';
-import { Icon } from 'react-native-elements'
-import { LinearGradient } from 'expo';
-import { hidden } from 'ansi-colors';
-
-import Colors from '../constants/Colors';
 
 export default class ProgressBar extends React.Component {
 	constructor(props) {
@@ -50,10 +40,10 @@ export default class ProgressBar extends React.Component {
 }
 let styles = StyleSheet.create({
 	progressBarWrapper: {
-		width: 150,
-		height: 30,
+		width: 175,
+		height: 48,
 		backgroundColor: '#fff',
-		borderRadius: 15,
+		borderRadius: 24,
 		overflow: 'hidden',
 		...Platform.select({
 			ios: {
@@ -68,8 +58,8 @@ let styles = StyleSheet.create({
 		}),
 	},
 	progressBar: {
-		width: 150,
-		height: 30,
+		width: 175,
+		height: 48,
 		borderRadius: 0,
 		backgroundColor: '#feca57',
 		position: 'absolute',
@@ -77,7 +67,7 @@ let styles = StyleSheet.create({
 		left: 0
 	},
 	levelTextStyle: {
-		lineHeight: 30,
+		lineHeight: 48,
 		fontSize: 18,
 		letterSpacing: 2,
 		color: 'rgba(0,0,0, 1)',

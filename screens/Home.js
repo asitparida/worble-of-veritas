@@ -30,15 +30,18 @@ export default class Home extends React.Component {
 			ariCommentAnimation: 'bounceInRight',
 			inboxShown: false,
 			showHomeProgressLoader: false,
-			worbleState: {
-				name: 'Harold',
-				imgSrc: require('../assets/images/worble.png')
-			}
+			worbleName: 'Harold',
+			worbleImgSrc: require('../assets/images/worble.png')
 		};
 	}
 
 	componentWillUnmount() {
-		[this.isInboxShownSubscription, this.actionTakenSubscription, this.worbleStateSusbscription, this.homeProgressLoaderSubscription].forEach(x => {
+		[
+			this.isInboxShownSubscription,
+			this.actionTakenSubscription,
+			this.homeProgressLoaderSubscription,
+			this.worbleNameSusbscription
+		].forEach(x => {
 			if (x) {
 				x.unsubscribe();
 				x = null;
@@ -61,9 +64,9 @@ export default class Home extends React.Component {
 				inboxShown: state
 			});
 		});
-		this.worbleStateSusbscription = WorbleManager.worbleState$.subscribe((state) => {
+		this.worbleNameSusbscription = WorbleManager.worbleName$.subscribe((state) => {
 			this.setState({
-				worbleState: state
+				worbleName: state
 			});
 		});
 		this.homeProgressLoaderSubscription = WorbleManager.homeProgressLoader$.subscribe((state) => {
@@ -89,11 +92,6 @@ export default class Home extends React.Component {
 			toValue: 1,
 			duration: 1000
 		}).start();
-		// WorbleManager.worbleState.next({
-		// 	name: 'Harold',
-		// 	imgSrc: require('../assets/images/happyworble.gif')
-		// });
-
 	}
 
 	closeWorbleActions() {
@@ -151,7 +149,7 @@ export default class Home extends React.Component {
 		}
 		let ariCommentAnimation = this.state.ariCommentAnimation;
 		let showActionBar = !this.state.inboxShown;
-		let worbleState = this.state.worbleState;
+		let worbleName = this.state.worbleName;
 		const showHomeProgressLoader = this.state.showHomeProgressLoader;
 		return (
 			<Animated.View style={[styles.container, scaledAnimatedStyle]}>
@@ -165,7 +163,7 @@ export default class Home extends React.Component {
 						<View style={styles.wrapper}>
 							<View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
 								<View style={styles.welcomeContainer} >
-									<Text style={styles.petName}>{worbleState.name}</Text>
+									<Text style={styles.petName}>{worbleName}</Text>
 									<WorbleHolder listenToClick={true} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowimensions} />
 									<View style={styles.progressBarWrapper}>
 										<ProgressBar progress={progress} />

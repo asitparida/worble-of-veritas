@@ -7,7 +7,8 @@ import {
     View,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    Dimensions
+    Dimensions,
+    TextInput
 } from 'react-native';
 import { Icon, Button } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
@@ -21,11 +22,11 @@ const avatarSrc = require('../assets/images/avatar.png');
 
 export default class WorbleAppearance extends React.Component {
 
-    //'#F0867A', '#a29bfe', '#fdcb6e'
-    colors = [ 
-        { eggBgFill: '#f0867a', eggTextureFill: '#a22112', eggMoonFill: '#C73A4D'},
-        { eggBgFill: '#a29bfe', eggTextureFill: '#1002ca', eggMoonFill: '#8a81fd'},
-        { eggBgFill: '#fdcb6e', eggTextureFill: '#b37502', eggMoonFill: '#fbad1a'}
+    colorSelected = null;
+    colors = [
+        { eggBgFill: '#f0867a', eggTextureFill: '#a22112', eggMoonFill: '#C73A4D' },
+        { eggBgFill: '#a29bfe', eggTextureFill: '#1002ca', eggMoonFill: '#8a81fd' },
+        { eggBgFill: '#fdcb6e', eggTextureFill: '#b37502', eggMoonFill: '#fbad1a' }
     ];
 
     constructor(props) {
@@ -33,31 +34,55 @@ export default class WorbleAppearance extends React.Component {
         this.state = {
             progress: 0,
             egg: WorbleManager.currentEggState || Constants.NEW_WORBLE_EGG_STATE,
-            showEgg: true
+            showEgg: true,
+            name: 'Harold',
+            nameFocussed: false
         };
     }
 
     choseBgColor(x) {
-        const egg = Object.assign({}, this.state.egg, x);
-        this.setState({
-            egg: egg
-        })
-        WorbleManager.eggState.next(egg);
+        if (this.colorSelected !== x.eggBgFill) {
+            const egg = Object.assign({}, this.state.egg, x);
+            this.setState({
+                egg: egg
+            })
+            WorbleManager.eggState.next(egg);
+            this.colorSelected = x.eggBgFill;
+        } else {
+            const egg = Object.assign({}, this.state.egg, Constants.NEW_WORBLE_EGG_STATE);
+            this.setState({
+                egg: egg
+            })
+            WorbleManager.eggState.next(egg);
+            this.colorSelected = null;
+        }
     }
 
     closeInbox() {
         WorbleManager.showWorbleAppearance.next(false);
     }
 
+    onNameChange(name) {
+        this.setState({
+            name: name
+        });
+        WorbleManager.worbleName.next(name);
+    }
+
+    onNameFocus() {
+        this.setState({
+            nameFocussed: true
+        });
+    }
+
+    onNameBlur() {
+        this.setState({
+            nameFocussed: false
+        });
+    }
+
     render() {
         const dims = Dimensions.get('window');
-        const midTop = 0.6 * (dims.height);
-        const groundContainerAddn = {
-            top: midTop + 20,
-            height: dims.height,
-            width: dims.width,
-            borderRadius: dims.width,
-        };
         let worbleWidth = 0.70 * (dims.width);
         worbleWidth = worbleWidth > 230 ? 230 : worbleWidth;
         let worbleDimensions = {
@@ -88,27 +113,33 @@ export default class WorbleAppearance extends React.Component {
                 bottom: -15
             }
         }
+        let activeTextClass = this.state.nameFocussed ? {
+            borderBottomColor: 'rgba(0, 0, 0, 0.60)'
+        } : {}
         const colorDivs = this.colors.map((x, i) => {
             return <TouchableWithoutFeedback key={i} onPress={this.choseBgColor.bind(this, x)}>
-                    <View style={[styles.colorBtn, { backgroundColor: x.eggBgFill}]}></View>
-                </TouchableWithoutFeedback>
+                <View style={[styles.colorBtn, { backgroundColor: x.eggBgFill }]}></View>
+            </TouchableWithoutFeedback>
         });
         return (
             <Animatable.View animation="fadeIn" style={styles.progressContainerWrapper}>
-                <BlurView tint="light" intensity={85} style={styles.progressContainerWrapper} >
+                <BlurView tint="light" intensity={90} style={styles.progressContainerWrapper} >
                     <TouchableWithoutFeedback onPress={this.closeInbox.bind(this)}>
                         <View style={styles.closeContainer}><Text style={styles.closeLabel}>x</Text></View>
                     </TouchableWithoutFeedback>
-                    <View style={styles.progressContainer}>
+                    <Animatable.View style={styles.progressContainer} animation="bounceIn" delay={500}>
                         <View style={styles.progressHolderContainer}>
                             <View style={styles.progressHolderWrapper}>
                                 <WorbleHolder dontListe={true} egg={this.state.egg} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowDimensions} />
                             </View>
                         </View>
-                    </View>
-                    <View style={styles.colorChanger}>
+                    </Animatable.View>
+                    <Animatable.View style={styles.textChanger} animation="bounceIn" delay={500}>
+                        <TextInput onFocus={this.onNameFocus.bind(this)} onBlur={this.onNameBlur.bind(this)} autoFocus={true} keyboardType={'default'} keyboardAppearance={'default'} style={[styles.petName, activeTextClass]} onChangeText={this.onNameChange.bind(this)} value={this.state.name} />
+                    </Animatable.View>
+                     <Animatable.View style={styles.colorChanger} animation="bounceIn" delay={500}>
                         {colorDivs}
-                    </View>
+                    </Animatable.View>
                 </BlurView>
             </Animatable.View>
         );
@@ -159,12 +190,12 @@ const styles = StyleSheet.create({
     },
     progressContainer: {
         flex: 1,
-        paddingTop: 40,
         flexDirection: 'column',
         position: 'absolute',
         height: '100%',
         width: '100%',
-        zIndex: 2
+        zIndex: 2,
+        paddingTop: 30
     },
     labelContainer: {
         height: 60
@@ -182,7 +213,6 @@ const styles = StyleSheet.create({
     },
     progressHolderContainer: {
         paddingHorizontal: 0,
-        paddingTop: 10,
         flex: 1,
         backgroundColor: 'rgba(255,255,255,0)',
     },
@@ -191,6 +221,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: 20
     },
     messageItemWrapper: {
         flexBasis: 0,
@@ -216,8 +247,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: '#3498db'
     },
-    colorChanger:{
-        flexBasis: 0, 
+    colorChanger: {
+        flexBasis: 0,
         flexGrow: 1,
         height: 60,
         position: 'absolute',
@@ -237,5 +268,36 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0,0,0,0.50)',
         borderStyle: 'solid',
         borderWidth: 4
+    },
+    textChanger: {
+        flexBasis: 0,
+        flexGrow: 1,
+        height: 100,
+        position: 'absolute',
+        top: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 3,
+        width: '100%',
+        flexDirection: 'row',
+        paddingHorizontal: 80
+    },
+    petName: {
+        fontSize: 48,
+        width: '100%',
+        color: 'rgba(0, 0, 0, 0.80)',
+        textAlign: 'center',
+        textTransform: 'capitalize',
+        fontFamily: 'shaky-hand-some-comic',
+        textShadowColor: 'rgba(0, 0, 0, 0.33)',
+        textShadowOffset: { width: -1, height: 1 },
+        textShadowRadius: 4,
+        letterSpacing: 1,
+        borderBottomColor: 'rgba(0, 0, 0, 0.10)',
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        paddingHorizontal: 15,
+        paddingBottom: 15,
+        marginTop: -20
     }
 });
