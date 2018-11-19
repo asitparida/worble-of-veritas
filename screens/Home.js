@@ -89,10 +89,10 @@ export default class Home extends React.Component {
 			toValue: 1,
 			duration: 1000
 		}).start();
-		WorbleManager.worbleState.next({
-			name: 'Harold',
-			imgSrc: require('../assets/images/happyworble.gif')
-		});
+		// WorbleManager.worbleState.next({
+		// 	name: 'Harold',
+		// 	imgSrc: require('../assets/images/happyworble.gif')
+		// });
 
 	}
 
@@ -166,7 +166,7 @@ export default class Home extends React.Component {
 							<View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
 								<View style={styles.welcomeContainer} >
 									<Text style={styles.petName}>{worbleState.name}</Text>
-									<WorbleHolder worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowimensions} />
+									<WorbleHolder listenToClick={true} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowimensions} />
 									<View style={styles.progressBarWrapper}>
 										<ProgressBar progress={progress} />
 									</View>

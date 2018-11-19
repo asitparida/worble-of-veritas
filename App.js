@@ -8,15 +8,17 @@ import WorbleManager from './services/WorbleManager';
 import Overlay from './screens/Overlay';
 import AriIntroduction from './screens/IntroductionAri';
 import AppProgress from './components/AppProgress';
+import WorbleAppearance from './components/WorbleAppearance';
 
 export default class App extends React.Component {
 	state = {
 		isLoadingComplete: false,
-		showHome: true,
-		showLanding: false,
+		showHome: false,
+		showLanding: true,
 		showInbox: false,
 		showAriIntroduction: false,
-		showAppLoader: false
+		showAppLoader: false,
+		showWorbleAppearanceChanger: false
 	};
 
 	constructor(props) {
@@ -24,7 +26,7 @@ export default class App extends React.Component {
 	}
 
 	componentWillUnmount() {
-		[this.isInboxShownSubscription, this.appProgressLoaderSubscription].forEach(x => {
+		[this.isInboxShownSubscription, this.appProgressLoaderSubscription, this.showWorbleAppearanceSubscription].forEach(x => {
 			if (x) {
 				x.unsubscribe();
 				x = null;
@@ -49,6 +51,11 @@ export default class App extends React.Component {
 				showAppLoader: state
 			});
 		});
+		this.showWorbleAppearanceSubscription = WorbleManager.showWorbleAppearance$.subscribe(state => {
+			this.setState({
+				showWorbleAppearanceChanger: state
+			});
+		})
 	}
 	listenForNotifications = () => {
 		Notifications.addListener(response => {
@@ -83,7 +90,7 @@ export default class App extends React.Component {
 	}
 
 	render() {
-		const { showHome, showAriIntroduction, showLanding, showInbox, showAppLoader} =  this.state;
+		const { showHome, showAriIntroduction, showLanding, showInbox, showAppLoader, showWorbleAppearanceChanger} =  this.state;
 		if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
 			return (
 				<AppLoading
@@ -107,6 +114,11 @@ export default class App extends React.Component {
 					{showAppLoader && 
 						<View style={styles.inboxWrapperOuter}>
 							<AppProgress />
+						</View>
+					}
+					{showWorbleAppearanceChanger &&
+						<View style={styles.inboxWrapperOuter}>
+							<WorbleAppearance />
 						</View>
 					}
 					<Overlay />

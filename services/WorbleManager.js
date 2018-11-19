@@ -17,7 +17,15 @@ class WorbleService {
 	homeProgressLoader$ = this.homeProgressLoader.asObservable();
 	appProgressLoader = new Subject();
 	appProgressLoader$ = this.appProgressLoader.asObservable();
+	eggState = new Subject();
+	eggState$ = this.eggState.asObservable();
+	currentEggState = null;
+	showWorbleAppearance = new Subject();
+	showWorbleAppearance$ = this.showWorbleAppearance.asObservable();
 	constructor() {
+		this.eggState$.subscribe(data => {
+			this.currentEggState = data;
+		});
 	}
 	sendNotification() {
 		const localNotification = {
