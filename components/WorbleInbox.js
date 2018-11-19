@@ -36,8 +36,10 @@ export default class WorbleInbox extends React.Component {
 
     constructor(props) {
         super(props);
+        const messages = [].concat(Messages);
+        messages.forEach(x => x.opened = false);
         this.state = {
-            messages: Messages
+            messages: messages
         };
     }
 
