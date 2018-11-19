@@ -117,9 +117,9 @@ export default class WorbleAppearance extends React.Component {
             borderBottomColor: 'rgba(0, 0, 0, 0.60)'
         } : {}
         const colorDivs = this.colors.map((x, i) => {
-            return <TouchableWithoutFeedback key={i} onPress={this.choseBgColor.bind(this, x)}>
-                <View style={[styles.colorBtn, { backgroundColor: x.eggBgFill }]}></View>
-            </TouchableWithoutFeedback>
+            return  <TouchableWithoutFeedback key={i} onPress={this.choseBgColor.bind(this, x)}>
+                        <View style={[styles.colorBtn, { backgroundColor: x.eggBgFill }]}></View>
+                    </TouchableWithoutFeedback>
         });
         return (
             <Animatable.View animation="fadeIn" style={styles.progressContainerWrapper}>
@@ -130,7 +130,7 @@ export default class WorbleAppearance extends React.Component {
                     <Animatable.View style={styles.progressContainer} animation="bounceIn" delay={500}>
                         <View style={styles.progressHolderContainer}>
                             <View style={styles.progressHolderWrapper}>
-                                <WorbleHolder dontListe={true} egg={this.state.egg} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowDimensions} />
+                                <WorbleHolder dontListen={true} egg={this.state.egg} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowDimensions} />
                             </View>
                         </View>
                     </Animatable.View>

@@ -6,7 +6,8 @@ import {
     Text,
     View,
     TouchableOpacity,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    WebView
 } from 'react-native';
 import { Icon, Button } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
@@ -15,43 +16,78 @@ import { BlurView } from 'expo';
 
 const avatarSrc = require('../assets/images/avatar.png');
 
+const textMsgContent = {
+    title: 'Hello World',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum'
+};
+
 const Messages = [
-    { id: 1, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 2, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 3, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 4, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 5, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 6, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 7, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' },
-    { id: 8, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW' }
+    { id: 1, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 2, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 3, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 4, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 5, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 6, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 7, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
+    { id: 8, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent }
 ];
 
 export default class WorbleInbox extends React.Component {
 
     constructor(props) {
         super(props);
+        this.state = {
+            messages: Messages
+        };
     }
 
     closeInbox() {
         WorbleManager.isInboxShown.next(false);
     }
 
+    toggleMessage(i) {
+        const messages = [].concat(Messages);
+        messages.forEach((mess, j) => {
+            mess.opened = i === j ? !mess.opened : false;
+            if (mess.opened) {
+                mess.status = 'READ'
+            }
+        });
+        this.setState({
+            messages: messages
+        })
+    }
+
     render() {
-        const MessagesView = Messages.map((item, i) => {
+        const MessagesView = this.state.messages.map((item, i) => {
+            const statusBackgroundColor = item.status === 'NEW' ? {
+                backgroundColor: '#3498db'
+            }: {};
             return <Animatable.View style={styles.messageItemWrapper} key={item.id} animation="bounceIn" delay={33 * i} useNativeDriver={true}>
-                <View style={styles.messageStatusContainer}>
-                    <View style={styles.status}></View>
-                </View>
-                <View style={styles.messagePhotoContainer}>
-                    <Image style={styles.avatarImage} source={avatarSrc}></Image>
-                </View>
-                <View style={styles.messageDetailsContainer}>
-                    <Text style={styles.avatarName}>{item.name}</Text>
-                    <Text style={styles.avatarMessage} numberOfLines={1}>{item.message}</Text>
-                </View>
-                <View style={styles.messageTimeContainer}>
-                    <Text style={styles.timeInfo} >{item.time}</Text>
-                </View>
+                <TouchableWithoutFeedback onPress={this.toggleMessage.bind(this, i)}>
+                    <View style={styles.messagePeekView}>
+                        <View style={styles.messageStatusContainer}>
+                            <View style={[styles.status, statusBackgroundColor]}></View>
+                        </View>
+                        <View style={styles.messagePhotoContainer}>
+                            <Image style={styles.avatarImage} source={avatarSrc}></Image>
+                        </View>
+                        <View style={styles.messageDetailsContainer}>
+                            <Text style={styles.avatarName}>{item.name}</Text>
+                            <Text style={styles.avatarMessage} numberOfLines={1}>{item.message}</Text>
+                        </View>
+                        <View style={styles.messageTimeContainer}>
+                            <Text style={styles.timeInfo} >{item.time}</Text>
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+                {item.opened &&
+                    <View style={styles.messageTextContainer}>
+                        <Text style={styles.messageContentTitle} >{item.messageContent.title}</Text>
+                        <Text style={styles.messageContentText}>{item.messageContent.text}</Text>
+                        <Text style={styles.messageContentTitle} >{item.name}</Text>
+                    </View>
+                }
             </Animatable.View>
         });
         return (
@@ -161,13 +197,19 @@ const styles = StyleSheet.create({
     messageItemWrapper: {
         flexBasis: 0,
         flexGrow: 1,
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
         borderBottomColor: 'rgba(0,0,0,0.1)',
         borderBottomWidth: 1,
         borderStyle: 'solid',
         paddingVertical: 20
+    },
+    messagePeekView: {
+        flexBasis: 0,
+        flexGrow: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     messageStatusContainer: {
         width: 30,
@@ -179,8 +221,7 @@ const styles = StyleSheet.create({
     status: {
         width: 10,
         height: 10,
-        borderRadius: 5,
-        backgroundColor: '#3498db'
+        borderRadius: 5
     },
     messagePhotoContainer: {
         width: 40,
@@ -193,6 +234,18 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0,0,0,0)',
         borderWidth: 1,
         borderStyle: 'solid'
+    },
+    messageTextContainer: {
+        width: '100%',
+        paddingHorizontal: 30,
+        paddingVertical: 10,
+        paddingTop: 20
+    },
+    messageContentTitle: {
+    },
+    messageContentText: {
+        textAlign: 'justify',
+        marginVertical: 10
     },
     avatarImage: {
         height: 25,

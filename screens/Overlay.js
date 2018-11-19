@@ -56,7 +56,7 @@ export default class Overlay extends React.Component {
                     this.setModalVisible(!this.state.modalVisible);
                 }}>
                     <View style={styles.modalWrapper}>
-                        <Animatable.View animation="bounceInUp" style={styles.modalContainer}>
+                        <Animatable.View animation="bounceInUp" style={styles.modalContainer} useNativeDriver={true}>
                             <View style={styles.labelWrapper}>
                                 <Text style={styles.label}>{title}</Text>
                             </View>
