@@ -3,7 +3,8 @@ import {
 	Platform,
 	StyleSheet,
 	Text,
-	View
+	View,
+	Dimensions
 } from 'react-native';
 
 export default class ProgressBar extends React.Component {
@@ -11,19 +12,23 @@ export default class ProgressBar extends React.Component {
 		super(props);
 	}
 	getProgressBarStyle = () => {
+		let width = 200;
+		if (this.props.width) {
+			width = Dimensions.get('window').width;
+		}
 		const progress = this.props.progress;
-		const progresBarWidth = (progress / 100) * 200;
+		const progresBarWidth = (progress / 100) * width;
 		styles.progressBar.width = progresBarWidth;
 		return Object.assign({}, styles.progressBar, {
 			width: progresBarWidth
 		});
 	}
 	render() {
-		const label = this.props.label || 'LEVEL #'
+		const label = this.props.label;
 		let widthStyles = {};
 		if (this.props.width) {
 			widthStyles = {
-				width: this.props.width
+				width: `${this.props.width}%`
 			};
 		}
 		return (

@@ -19,25 +19,36 @@ export default class WorbleActionsBar extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            showWorbleActions: false
+            showWorbleActions: false,
+            worbleActions: []
         };
-        this.hideActionsSubscription = WorbleManager.hideActions$.subscribe((data) => {
-            if (data) {
-                this.setState({
-                    showWorbleActions: false
-                });
-            }
-        });
     }
 
     componentWillMount() {
         this.animatedValueForOpacity = new Animated.Value(0);
+        this.hideActionsSubscription = WorbleManager.hideActions$.subscribe((data) => {
+            if (data) {
+                this.setState({
+                    showWorbleActions: false,
+                });
+            }
+        });
+        this.worbleActionsSubscription = WorbleManager.worbleActions$.subscribe(actions => {
+            this.setState({
+                worbleActions: actions
+            });
+        });
     }
     componentWillUnmount() {
-        if (this.hideActionsSubscription) {
-            this.hideActionsSubscription.unsubscribe();
-            this.hideActionsSubscription = null;
-        }
+        [
+            this.hideActionsSubscription,
+            this.worbleActionsSubscription
+        ].forEach(x => {
+            if (x) {
+                x.unsubscribe();
+                x = null;
+            }
+        });
     }
     onAction(id) {
         switch (id) {
@@ -79,18 +90,19 @@ export default class WorbleActionsBar extends React.Component {
     }
 
     render() {
-        const showWorbleActions = this.state.showWorbleActions;
-        const WorbleViewActions = WorbleActions.map(x => {
+        const { showWorbleActions, worbleActions } = this.state;
+        const WorbleViewActions = worbleActions.map(x => {
             return  <TouchableWithoutFeedback onPress={this.onWorbleAction.bind(this, x)} key={x.id}>
                 <View  style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>{x.text}</Text></View>
             </TouchableWithoutFeedback>;
         })
+        let  worbleActionDisabledStyle = worbleActions.length === 0 ? { opacity: 0.20} : {};
         return (
             <View style={styles.getStartedContainer}>
                 <TouchableWithoutFeedback>
                     <View style={styles.actionBox} >
-                        <TouchableWithoutFeedback onPress={this.onAction.bind(this, 'WORBLE_ACTIONS')}>
-                            <View style={{ alignItems: 'center' }}>
+                        <TouchableWithoutFeedback onPress={this.onAction.bind(this, 'WORBLE_ACTIONS')} disabled={worbleActions.length === 0} >
+                            <View style={[{ alignItems: 'center' }, worbleActionDisabledStyle]}>
                                 <Image
                                     source={
                                         require('../assets/images/worble_icon.png')

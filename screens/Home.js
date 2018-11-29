@@ -16,11 +16,14 @@ import WorbleActionsBar from '../components/WorbleActionsBar';
 import WorbleManager from '../services/WorbleManager.js';
 import AppProgress from '../components/AppProgress';
 import WorbleHolder from '../components/WorbleHolder';
+import AppConstants from '../constants/AppConstants';
+import WorbleGamePlay from '../services/WorbleGamePlay';
 
 const ariIconSrc = require('../assets/images/ari_small.png');
 
 export default class Home extends React.Component {
 	worbleActionMenuOpen = false;
+	ariCommentsTimer = null;
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -30,8 +33,12 @@ export default class Home extends React.Component {
 			ariCommentAnimation: 'bounceInRight',
 			inboxShown: false,
 			showHomeProgressLoader: false,
-			worbleName: 'Harold',
-			worbleImgSrc: require('../assets/images/worble.png')
+			worbleName: 'Mystery Egg',
+			worbleImgSrc: require('../assets/images/worble.png'),
+			profileInfo: AppConstants.ProfileInfo,
+			commentsBadge: 0,
+			commentsText: '',
+			showBadge: false
 		};
 	}
 
@@ -40,12 +47,14 @@ export default class Home extends React.Component {
 			this.isInboxShownSubscription,
 			this.actionTakenSubscription,
 			this.homeProgressLoaderSubscription,
-			this.worbleNameSusbscription
+			this.worbleNameSusbscription,
+			this.profileInfoSusbscription,
+			this.ariStateSusbscription
 		].forEach(x => {
 			if (x) {
 				x.unsubscribe();
 				x = null;
-			}	
+			}
 		});
 	}
 
@@ -74,24 +83,47 @@ export default class Home extends React.Component {
 				showHomeProgressLoader: state
 			});
 		});
+		this.profileInfoSusbscription = WorbleManager.profileInfo$.subscribe((info) => {
+			this.setState({
+				profileInfo: info
+			});
+		})
+		this.ariStateSusbscription = WorbleManager.ariState$.subscribe(data => {
+			if (data && data.message) {
+				let showBadge = data.forceMessageShow === true ? false : true;
+				this.setState({
+					commentsBadge: 1,
+					commentsText: data.message,
+					showBadge: showBadge,
+					showAriComments: data.forceMessageShow || false
+				});
+				if (data.autoDismiss && data.autoDismiss > 0) {
+					const nextAppState = data.stateOnDimsiss;
+					if (this.ariCommentsTimer) {
+						clearTimeout(this.ariCommentsTimer);
+						this.ariCommentsTimer = null;
+					}
+					this.ariCommentsTimer = setTimeout(() => {
+						if (this.state.showAriComments) {
+							this.setState({
+								showAriComments: false
+							})
+						}
+						if (nextAppState) {
+							WorbleManager.appState.next(nextAppState);
+						}
+					}, data.autoDismiss);
+				}
+			}
+		})
 	}
 	componentDidMount() {
 		this.state.progress = 0;
-		const updateProgress = () => {
-			this.state.progress++;
-			if (this.state.progress >= 100) {
-				this.state.progress = 0;
-			}
-			this.setState({
-				progress: this.state.progress
-			})
-			requestAnimationFrame(updateProgress);
-		};
-		requestAnimationFrame(updateProgress);
 		Animated.timing(this.animatedValueForOpacity, {
 			toValue: 1,
 			duration: 1000
 		}).start();
+		WorbleGamePlay.init();
 	}
 
 	closeWorbleActions() {
@@ -101,7 +133,9 @@ export default class Home extends React.Component {
 		}
 		if (this.state.showAriComments) {
 			this.setState({
-				showAriComments: false
+				showAriComments: false,
+				commentsBadge: 1,
+				showBadge: false
 			});
 		}
 	}
@@ -126,7 +160,8 @@ export default class Home extends React.Component {
 			width: dims.width,
 			borderRadius: dims.width,
 		};
-		const progress = this.state.progress;
+		const progress = this.state.profileInfo.progress;
+		const level = `Level ${this.state.profileInfo.level}`;
 		let worbleWidth = 0.70 * (dims.width);
 		worbleWidth = worbleWidth > 230 ? 230 : worbleWidth;
 		const worbleDimensions = {
@@ -164,9 +199,9 @@ export default class Home extends React.Component {
 							<View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
 								<View style={styles.welcomeContainer} >
 									<Text style={styles.petName}>{worbleName}</Text>
-									<WorbleHolder listenToClick={true} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowimensions} />
+									<WorbleHolder checkIncubated={true} listenToClick={true} worbleDimensions={worbleDimensions} worbleShadowimensions={worbleShadowimensions} />
 									<View style={styles.progressBarWrapper}>
-										<ProgressBar progress={progress} />
+										<ProgressBar progress={progress} label={level} />
 									</View>
 								</View>
 							</View>
@@ -180,12 +215,12 @@ export default class Home extends React.Component {
 									<Animatable.View animation={ariCommentAnimation} style={styles.commentsOuterWrapper} useNativeDriver={true} >
 										<View style={styles.commentsWrapper}>
 											<View style={styles.commentTip}></View>
-											<Text style={styles.commentsText}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</Text>
+											<Text style={styles.commentsText}>{this.state.commentsText}</Text>
 										</View>
 									</Animatable.View>
 								</TouchableWithoutFeedback>
 							}
-							{showHomeProgressLoader && 
+							{showHomeProgressLoader &&
 								<View style={styles.homeProgressLoader}>
 									<AppProgress />
 								</View>
@@ -195,7 +230,9 @@ export default class Home extends React.Component {
 									<TouchableWithoutFeedback onPress={this.openAriComments.bind(this)}>
 										<View style={[styles.ariIconWrapper, ariIconWrapperExtra]}>
 											<Animatable.Image animation="jello" iterationCount="infinite" duration={1500} source={ariIconSrc} style={styles.ariIconStyle} />
-											<View style={styles.badge}><Text style={styles.badgeText}>02</Text></View>
+											{this.state.showBadge &&
+												<View style={styles.badge}><Text style={styles.badgeText}>{this.state.commentsBadge}</Text></View>
+											}
 										</View>
 									</TouchableWithoutFeedback>
 								</View>
@@ -381,7 +418,8 @@ const styles = StyleSheet.create({
 	commentsWrapper: {
 		backgroundColor: 'rgba(255, 255, 255, 1)',
 		textAlign: 'justify',
-		padding: 20,
+		paddingHorizontal: 20,
+		paddingVertical: 40,
 		borderRadius: 10,
 		flexBasis: 0,
 		flexGrow: 1,
@@ -406,7 +444,8 @@ const styles = StyleSheet.create({
 		fontFamily: 'shaky-hand-some-comic',
 		fontSize: 20,
 		letterSpacing: 1,
-		lineHeight: 30
+		lineHeight: 30,
+		textAlign: 'center'
 	},
 	commentTip: {
 		zIndex: 998,

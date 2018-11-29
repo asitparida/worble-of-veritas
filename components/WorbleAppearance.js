@@ -15,7 +15,7 @@ import * as Animatable from 'react-native-animatable';
 import WorbleManager from '../services/WorbleManager.js'
 import { BlurView } from 'expo';
 import ProgressBar from './ProgressBar.js';
-import Constants from '../constants/Constants.js';
+import AppConstants from '../constants/AppConstants.js';
 import WorbleHolder from './WorbleHolder.js';
 
 const avatarSrc = require('../assets/images/avatar.png');
@@ -33,10 +33,11 @@ export default class WorbleAppearance extends React.Component {
         super(props);
         this.state = {
             progress: 0,
-            egg: WorbleManager.currentEggState || Constants.NEW_WORBLE_EGG_STATE,
+            egg: WorbleManager.currentEggState || AppConstants.NEW_WORBLE_EGG_STATE,
             showEgg: true,
-            name: 'Harold',
-            nameFocussed: false
+            name: 'Mystery Egg',
+            nameFocussed: false,
+            hideNameEditing: false
         };
     }
 
@@ -49,13 +50,14 @@ export default class WorbleAppearance extends React.Component {
             WorbleManager.eggState.next(egg);
             this.colorSelected = x.eggBgFill;
         } else {
-            const egg = Object.assign({}, this.state.egg, Constants.NEW_WORBLE_EGG_STATE);
+            const egg = Object.assign({}, this.state.egg, AppConstants.NEW_WORBLE_EGG_STATE);
             this.setState({
                 egg: egg
             })
             WorbleManager.eggState.next(egg);
             this.colorSelected = null;
         }
+        WorbleManager.setStorage(AppConstants.STORAGE_KEYS.FIRST_EGG_PERSONALIZED, 'true').then(() => {},() => {})
     }
 
     closeInbox() {
@@ -134,9 +136,11 @@ export default class WorbleAppearance extends React.Component {
                             </View>
                         </View>
                     </Animatable.View>
-                    <Animatable.View style={styles.textChanger} animation="bounceIn" delay={500}>
-                        <TextInput onFocus={this.onNameFocus.bind(this)} onBlur={this.onNameBlur.bind(this)} autoFocus={true} keyboardType={'default'} keyboardAppearance={'default'} style={[styles.petName, activeTextClass]} onChangeText={this.onNameChange.bind(this)} value={this.state.name} />
-                    </Animatable.View>
+                    { !this.state.hideNameEditing && 
+                        <Animatable.View style={styles.textChanger} animation="bounceIn" delay={500}>
+                            <TextInput onFocus={this.onNameFocus.bind(this)} onBlur={this.onNameBlur.bind(this)} autoFocus={true} keyboardType={'default'} keyboardAppearance={'default'} style={[styles.petName, activeTextClass]} onChangeText={this.onNameChange.bind(this)} value={this.state.name} />
+                        </Animatable.View>
+                    } 
                      <Animatable.View style={styles.colorChanger} animation="bounceIn" delay={500}>
                         {colorDivs}
                     </Animatable.View>
@@ -280,7 +284,7 @@ const styles = StyleSheet.create({
         zIndex: 3,
         width: '100%',
         flexDirection: 'row',
-        paddingHorizontal: 80
+        paddingHorizontal: 40
     },
     petName: {
         fontSize: 48,

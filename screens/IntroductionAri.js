@@ -7,34 +7,146 @@ import {
     Text,
     View,
     Animated,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    TextInput,
+    Dimensions
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import WorbleManager from '../services/WorbleManager';
 import { LinearGradient } from 'expo';
+import AppConstants from '../constants/AppConstants';
+import * as _ from 'lodash';
+import WorbleHolder from '../components/WorbleHolder';
 
-const ariIcon = require('../assets/images/ari_icon_neutral.png');
+const ariIconBig = require('../assets/images/ari_icon_neutral.png');
+const ariIconSmall = require('../assets/images/ari_small.png');
 
 export default class AriIntroduction extends React.Component {
-
+    introductions = AppConstants.Introductions;
+    nextState = null;
     constructor(props) {
         super(props);
         this.state = {
             showAriComments: true,
             ariCommentAnimation: 'bounceInDown',
             commentTitle: 'Welcome to Planet Veritas!',
-            commentText: 'My name is Ari and I am your personal assistant'
+            commentText: 'My name is Ari and I am your personal assistant',
+            profile: AppConstants.ProfileInfo,
+            profileEditing: false,
+            nameFocussed: true,
+            activeIntroudctionIndex: -1,
+            nextButtonDisabled: false,
+            showEgg: false,
+            egg: WorbleManager.currentEggState || AppConstants.NEW_WORBLE_EGG_STATE,
+            profileInfoSaved: false,
+            ariIcon: ariIconBig
         };
     }
 
+    onNameChange(name) {
+        const profileObj = this.state.profile;
+        const profile = Object.assign({}, profileObj, {
+            name: name,
+            set: true
+        })
+        this.setState({
+            profile: profile
+        });
+    }
+
+    onNameFocus() {
+        this.setState({
+            nameFocussed: true
+        });
+    }
+
+    onNameBlur() {
+        this.setState({
+            nameFocussed: false
+        });
+    }
+
     _onPressButton() {
-        this.props.handleOnPress();
+        let loadState = this.nextState;
+        let { profile, profileEditing, activeIntroudctionIndex, showEgg } = this.state;
+        if (!profile.set) {
+            if (!profileEditing) {
+                this.setState({
+                    commentTitle: '',
+                    commentText: 'What should I call you ?',
+                    profileEditing: true
+                });
+            }
+        } else {
+            activeIntroudctionIndex += 1;
+            if (profileEditing) {
+                this.setState({
+                    profileEditing: false,
+                    commentTitle: `Hey ${profile.name}`,
+                    commentText: this.introductions[activeIntroudctionIndex].text,
+                    activeIntroudctionIndex: activeIntroudctionIndex
+                });
+            } else {
+                if (activeIntroudctionIndex < this.introductions.length) {
+                    this.setState({
+                        profileEditing: false,
+                        commentTitle: '',
+                        commentText: this.introductions[activeIntroudctionIndex].text,
+                        activeIntroudctionIndex: activeIntroudctionIndex,
+                        ariIcon: ariIconSmall
+                    });
+                } else {
+                    if (loadState !== 'Call.Egg.Decorate' && loadState !== 'Call.LaunchHome') {
+                        this.nextState = 'Call.Egg.Decorate';
+                        this.setState({
+                            commentTitle:'OHHH MYYY !!',
+                            commentText: 'This egg was found abandoned. You have been entrusted to raise it.!',
+                            showEgg: true,
+                            egg: AppConstants.NEW_WORBLE_EGG_STATE
+                        })
+                    } else if (loadState === 'Call.Egg.Decorate') {
+                        this.nextState = 'Call.LaunchHome';
+                        this.setState({
+                            commentTitle:'',
+                            commentText: 'Time to decorate and personalize the egg !',
+                            showEgg: true,
+                            egg: AppConstants.NEW_WORBLE_EGG_STATE
+                        })
+                    } else if (loadState === 'Call.LaunchHome') {
+                        WorbleManager.setProfileInformation(this.state.profile).then(() => {
+                            WorbleManager.profileInfo.next(this.state.profile);
+                            WorbleManager.appState.next('READY_TO_INCUBATE');
+                        });
+                        WorbleManager.setStorage(AppConstants.STORAGE_KEYS.ARI_INTRODUCED, true).then(() => {
+                            this.props.handleOnPress();
+                        });
+                    }
+                }
+            }
+        }
     }
 
     componentWillMount() {
         this.animatedValueForScaling = new Animated.Value(0.5);
+        this.profileInfoSubscription = WorbleManager.profileInfo$.subscribe((data) => {
+            this.setState({
+                profile: data
+            });
+        });
     }
+
+    componentWillUnmount() {
+        [
+            this.profileInfoSubscription
+        ].forEach(x => {
+            if (x) {
+                x.unsubscribe();
+                x = null;
+            }
+        });
+    }
+
     componentDidMount() {
         Animated.loop(Animated.sequence([
             Animated.timing(this.animatedValueForScaling, {
@@ -62,7 +174,9 @@ export default class AriIntroduction extends React.Component {
     }
 
     render() {
-        let { commentText, showAriComments, ariCommentAnimation, commentTitle } = this.state;
+        let { commentText, showAriComments, ariCommentAnimation, commentTitle, profileEditing, showEgg } = this.state;
+        const showCommentsTitle = !_.isEmpty(commentTitle);
+        const showCommentsText = !_.isEmpty(commentText);
         let ariIconWrapperExtra = {};
         if (showAriComments) {
             ariIconWrapperExtra = {
@@ -85,31 +199,67 @@ export default class AriIntroduction extends React.Component {
                 }
             ]
         }
+        let activeTextClass = this.state.nameFocussed ? {
+            borderBottomColor: 'rgba(0, 0, 0, 0.60)'
+        } : {};
+        let eggHolderDimensions = {
+            height: 100,
+            marginBottom: 0
+        }
+        let eggDimensions = {
+            height: 120
+        }
+        let welcomeContainerMod = {};
+        welcomeContainerMod = {
+            marginBottom: 20,
+            marginTop: 20
+        };
+        let commentsContainerExtra = {};
+        let welcomeImageExtra = {};
+        let ariIcon = this.state.ariIcon;
+        if (ariIcon === ariIconSmall) {
+            commentsContainerExtra = {
+                paddingTop: 20,
+                marginBottom: 20
+            };
+            welcomeImageExtra = {
+                height: 100
+            }
+        }
         return (
             <Animatable.View style={styles.container} animation="fadeIn" easing="ease-out" iterationCount={1} duration={1000}>
                 <LinearGradient
                     style={styles.lienarGradientContainer}
                     colors={['rgba(213, 213, 78, 0.6)', 'rgba(51, 138, 200, 0.4)']} >
-                    <View style={styles.welcomeContainer}>
-                        <View style={styles.commentsContainer}>
+                    <View style={[styles.welcomeContainer, welcomeContainerMod]}>
+                        { showEgg && 
+                            <WorbleHolder dontCheckPersonalized={true} worbleEggDimensions={eggDimensions} worbleDimensions={eggHolderDimensions} dontListen={true} egg={this.state.egg}  />
+                        }
+                        <View style={[styles.commentsContainer, commentsContainerExtra]}>
                             {showAriComments &&
                                 <TouchableWithoutFeedback>
                                     <Animatable.View animation={ariCommentAnimation} style={styles.commentsOuterWrapper} useNativeDriver={true} >
                                         <View style={styles.commentsWrapper}>
                                             <View style={styles.commentTip}></View>
-                                            <Text style={styles.commentsText}>{commentTitle}</Text>
-                                            <Text style={styles.commentsText}>{commentText}</Text>
+                                            {showCommentsTitle && <Text style={styles.commentsTitle}>{commentTitle}</Text>}
+                                            {showCommentsText && <Text style={styles.commentsText}>{commentText}</Text>}
                                         </View>
                                     </Animatable.View>
                                 </TouchableWithoutFeedback>
                             }
                         </View>
+                        {
+                            profileEditing &&
+                            <Animatable.View style={styles.textChanger} animation="bounceIn" delay={100}>
+                                <TextInput onFocus={this.onNameFocus.bind(this)} onBlur={this.onNameBlur.bind(this)} autoFocus={true} keyboardType={'default'} keyboardAppearance={'default'} style={[styles.petName, activeTextClass]} onChangeText={this.onNameChange.bind(this)} value={this.state.profile.name} />
+                            </Animatable.View>
+                        }
                         <Animatable.Image animation="tada" easing="ease-in" iterationCount={1} duration={1000}
                             source={ariIcon}
-                            style={styles.welcomeImage} />
+                            style={[styles.welcomeImage, welcomeImageExtra]} />
                     </View>
                     <View style={styles.tabBarInfoContainer}>
-                        <TouchableWithoutFeedback onPress={this._onPressButton.bind(this)}>
+                        <TouchableWithoutFeedback onPress={this._onPressButton.bind(this)} >
                             <Animated.View style={[styles.centralIconStyles, scaledAnimatedStyle]} >
                                 <Icon color='#fff' size={36} name='keyboard-arrow-right' />
                             </Animated.View>
@@ -131,20 +281,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1
     },
-    developmentModeText: {
-        marginBottom: 20,
-        color: 'rgba(0,0,0,0.4)',
-        fontSize: 14,
-        lineHeight: 19,
-        textAlign: 'center',
-    },
-    contentContainer: {
-        paddingTop: 30,
-    },
     welcomeContainer: {
         alignItems: 'center',
         marginTop: 0,
-        marginBottom: 20
+        justifyContent: 'flex-end',
+        marginBottom: 80,
+        flex: 1
     },
     welcomeImage: {
         width: 150,
@@ -168,14 +310,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingTop: 50,
-        marginBottom: 0,
         marginBottom: 20
-    },
-    welcomeContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 0,
-        flex: 1
     },
     tabBarInfoContainer: {
         marginBottom: 20,
@@ -214,25 +349,6 @@ const styles = StyleSheet.create({
                 elevation: 20,
             },
         }),
-    },
-    tabBarInfoText: {
-        fontSize: 17,
-        color: 'rgba(96,100,109, 1)',
-        textAlign: 'center',
-    },
-    navigationFilename: {
-        marginTop: 5,
-    },
-    helpContainer: {
-        marginTop: 15,
-        alignItems: 'center',
-    },
-    helpLink: {
-        paddingVertical: 15,
-    },
-    helpLinkText: {
-        fontSize: 14,
-        color: '#2e78b7',
     },
     ariIconWrapper: {
         justifyContent: 'center',
@@ -294,6 +410,14 @@ const styles = StyleSheet.create({
         lineHeight: 30,
         textAlign: 'center'
     },
+    commentsTitle: {
+        fontFamily: 'shaky-hand-some-comic',
+        fontSize: 24,
+        letterSpacing: 1,
+        lineHeight: 30,
+        textAlign: 'center',
+        paddingVertical: 5
+    },
     commentTip: {
         zIndex: 998,
         bottom: -25,
@@ -311,5 +435,32 @@ const styles = StyleSheet.create({
     },
     progressBarWrapper: {
         marginTop: 30
+    },
+    textChanger: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 3,
+        width: '100%',
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 60
+    },
+    petName: {
+        fontSize: 48,
+        width: '100%',
+        color: 'rgba(0, 0, 0, 0.80)',
+        textAlign: 'center',
+        textTransform: 'capitalize',
+        fontFamily: 'shaky-hand-some-comic',
+        textShadowColor: 'rgba(0, 0, 0, 0.33)',
+        textShadowOffset: { width: -1, height: 1 },
+        textShadowRadius: 4,
+        letterSpacing: 1,
+        borderBottomColor: 'rgba(0, 0, 0, 0.10)',
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        paddingHorizontal: 15,
+        paddingBottom: 15,
+        marginTop: -20
     }
 });

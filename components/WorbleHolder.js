@@ -4,25 +4,27 @@ import {
     Platform,
     StyleSheet,
     View,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    Dimensions
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { Svg } from 'expo';
-import Constants from '../constants/Constants';
+import AppConstants from '../constants/AppConstants';
+import WorbleManager from '../services/WorbleManager';
 
 export default class WorbleHolder extends React.Component {
+    count = 0;
     constructor(props) {
         super(props);
-        this.state = {
-            showEgg: true,
-            worbleImgSrc: require('../assets/images/worble.png'),
-            egg: Constants.NEW_WORBLE_EGG_STATE
-        };
+        this.state = AppConstants.WorbleState;
     }
     componentWillUnmount() {
         [
+            this.worbleStateSusbscription,
             this.worbleImgSrcSusbscription,
-            this.eggStateSusbscription
+            this.eggStateSusbscription,
+            this.worbleIncubationStateSubscription,
+            this.incubatedWorbleStateSusbscription
         ].forEach(x => {
             if (x) {
                 x.unsubscribe();
@@ -34,7 +36,7 @@ export default class WorbleHolder extends React.Component {
         const dontListen = this.props.dontListen || false;
         if (!dontListen) {
             this.eggStateSusbscription = WorbleManager.eggState$.subscribe((state) => {
-                if (state) {
+                if (typeof state !== undefined) {
                     this.setState({
                         showEgg: true,
                         egg: state
@@ -46,7 +48,64 @@ export default class WorbleHolder extends React.Component {
                     worbleImgSrc: state
                 });
             });
+            this.incubatedWorbleStateSusbscription = WorbleManager.worbleState$.subscribe((state) => {
+                if (state.showEgg === false) {
+                    this.setState({
+                        showEgg: false,
+                        ... state
+                    })
+                }
+            });
+            this.worbleIncubationStateSubscription = WorbleManager.appState.subscribe(state => {
+                switch (state) {
+                    case 'EGG_INCUBATED': {
+                        if (state === 'EGG_INCUBATED') {
+                            this.setState({
+                                incubated: true
+                            });
+                        }
+                        break;
+                    }
+                    case 'EGG_FLIPPING': {
+                        this.count++;
+                        this.view.animate('shake', 2000, 0).then(endState => {
+                            if (this.count < 2) {
+                                WorbleManager.ariState.next({
+                                    message: 'Try shaking your egg again!',
+                                    forceMessageShow: true
+                                });
+                            } else {
+                                WorbleManager.appState.next('EGG_READY_TO_HATCH');
+                            }
+                        });
+                        break;
+                    }
+                }
+            })
         }
+    }
+    componentDidMount() {
+        this.view.animate('wobble', 2000, 1000).then(endState => console.log(endState.finished ? 'egg animate finished' : 'egg animate cancelled'));
+        if (!this.props.dontCheckPersonalized) {
+            this.worbleStateSusbscription = WorbleManager.worbleState$.subscribe((data) => {
+                if (data) {
+                    if (!data.personalized) {
+                        WorbleManager.getStorage(AppConstants.STORAGE_KEYS.FIRST_EGG_PERSONALIZED).then((data) => {
+                            if (data !== 'true') {
+                                WorbleManager.eggState.next(AppConstants.NEW_WORBLE_EGG_STATE);
+                                WorbleManager.showWorbleAppearance.next(true);
+                            }
+                        }, () => {
+                            WorbleManager.showWorbleAppearance.next(true);
+                        });
+                    }
+                }
+            });
+        }
+    }
+    handleViewRef(ref) {
+        this.view = ref;
+        // console.log(ref);
     }
     getProgressBarStyle = () => {
         const progress = this.props.progress;
@@ -63,16 +122,15 @@ export default class WorbleHolder extends React.Component {
     }
     render() {
         let worbleImgSrc = this.state.worbleImgSrc;
-        let worbleEggDimensions = {
+        let worbleEggDimensions = Object.assign({}, {
             width: 180,
             height: 180,
-        }
-        let worbleDimensions = this.props.worbleDimensions;
-        let dimension = worbleDimensions.width / 3.25;
+        }, this.props.worbleEggDimensions || {});
+        let dimension = Dimensions.get('window').width / 4;
         worbleShadowDimensions = {
             height: dimension,
             width: dimension,
-            marginTop: dimension + 20,
+            marginTop: dimension + 30,
             borderRadius: dimension / 2,
             bottom: -15
         }
@@ -98,18 +156,26 @@ export default class WorbleHolder extends React.Component {
         } else {
             egg = this.state.egg
         }
-        const {
+        let {
             eggBgFill,
             eggBorderStroke,
             eggMoonFill,
             eggTextureFill,
             eggSpotsFill
         } = egg;
+        const checkIncubated = this.props.checkIncubated || false;
+        if (checkIncubated) {
+            if (!this.state.incubated) {
+                eggTextureFill = AppConstants.NEW_WORBLE_EGG_STATE.eggTextureFill;
+                eggBgFill = AppConstants.NEW_WORBLE_EGG_STATE.eggBgFill;
+                eggMoonFill = AppConstants.NEW_WORBLE_EGG_STATE.eggMoonFill;
+            }
+        }
         return (
             <View style={[this.props.worbleDimensions, { position: 'relative' }]} >
                 {this.state.showEgg &&
                     <TouchableWithoutFeedback onLongPress={this.openWorbleAppearanceChanger.bind(this)}>
-                        <Animatable.View style={styles.welcomeEgg} animation="wobble" useNativeDriver={true} iterationCount={2} duration={2000}>
+                        <Animatable.View style={styles.welcomeEgg} ref={this.handleViewRef.bind(this)} iterationCount={2}>
                             <Svg width={worbleEggDimensions.width} height={worbleEggDimensions.height} viewBox="0 0 394 538" >
                                 <Svg.G stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                     <Svg.Path className={'egg-bg'} fill={eggBgFill} d="M191.450809,-7.99377075e-05 C297.186014,-7.99377075e-05 382.901618,117.925625 382.901618,263.394666 C382.901618,408.863707 297.186014,526.789412 191.450809,526.789412 C85.7156049,526.789412 0,408.863707 0,263.394666 C0,117.925625 85.7156049,-7.99377075e-05 191.450809,-7.99377075e-05"></Svg.Path>

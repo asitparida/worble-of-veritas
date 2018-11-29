@@ -14,55 +14,44 @@ import * as Animatable from 'react-native-animatable';
 import WorbleManager from '../services/WorbleManager.js'
 import { BlurView } from 'expo';
 
-const avatarSrc = require('../assets/images/avatar.png');
+const avatarSrc = require('../assets/images/book_icon.png');
 
 const textMsgContent = {
     title: 'Hello World',
     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum'
 };
 
-const Messages = [
-    // { id: 1, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 2, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 3, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 4, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 5, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 6, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 7, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent },
-    // { id: 8, name: 'Gordon', message: 'Lorem ipsum dolor sit amet sit amet dolor', time: '2 days ago', status: 'NEW', opened: false, messageContent: textMsgContent }
-];
-
-export default class WorbleInbox extends React.Component {
-    orignalMessages = [];
+export default class Veripedia extends React.Component {
+    orignalItems = [];
     constructor(props) {
         super(props);
-        const messages = [].concat(this.orignalMessages);
-        messages.forEach(x => x.opened = false);
+        const items = [].concat(this.orignalItems);
+        items.forEach(x => x.opened = false);
         this.state = {
-            messages: messages
+            items: items
         };
     }
 
     closeInbox() {
-        WorbleManager.isInboxShown.next(false);
+        WorbleManager.isVeripediaShown.next(false);
     }
 
     toggleMessage(i) {
-        const messages = [].concat(this.orignalMessages);
-        messages.forEach((mess, j) => {
-            mess.opened = i === j ? !mess.opened : false;
-            if (mess.opened) {
-                mess.status = 'READ'
+        const items = [].concat(this.orignalItems);
+        items.forEach((item, j) => {
+            item.opened = i === j ? !item.opened : false;
+            if (item.opened) {
+                item.status = 'READ'
             }
         });
         this.setState({
-            messages: messages
+            items: items
         })
     }
 
     componentWillUnmount() {
         [
-            this.inboxMessagesSubscription
+            this.veripediaTextsSubscription
         ].forEach(x => {
             if (x) {
                 x.unsubscribe();
@@ -72,29 +61,29 @@ export default class WorbleInbox extends React.Component {
     }
 
     componentWillMount() {
-        this.inboxMessagesSubscription = WorbleManager.inboxMessages.subscribe(data => {
-            const currentMessages = this.state.messages
+        this.veripediaTextsSubscription = WorbleManager.veripediaItems.subscribe(data => {
+            const currentItems = this.state.items
             if (data ) {
-                const messages = [].concat(data).concat(currentMessages);
-                this.orignalMessages = messages;
+                const items = [].concat(data).concat(currentItems);
+                this.orignalItems = items;
                 this.setState({
-                    messages: messages
+                    items: items
                 });
             }
         });
     }
 
     render() {
-        const MessagesView = this.state.messages.map((item, i) => {
+        const ItemsView = this.state.items.map((item, i) => {
+            if (i == 0) {
+                item.opened = true;
+            }
             const statusBackgroundColor = item.status === 'NEW' ? {
                 backgroundColor: '#3498db'
             }: {};
             return <Animatable.View style={styles.messageItemWrapper} key={item.id} animation="bounceIn" delay={33 * i} useNativeDriver={true}>
                 <TouchableWithoutFeedback onPress={this.toggleMessage.bind(this, i)}>
                     <View style={styles.messagePeekView}>
-                        <View style={styles.messageStatusContainer}>
-                            <View style={[styles.status, statusBackgroundColor]}></View>
-                        </View>
                         <View style={styles.messagePhotoContainer}>
                             <Image style={styles.avatarImage} source={avatarSrc}></Image>
                         </View>
@@ -102,16 +91,12 @@ export default class WorbleInbox extends React.Component {
                             <Text style={styles.avatarName}>{item.name}</Text>
                             <Text style={styles.avatarMessage} numberOfLines={1}>{item.message}</Text>
                         </View>
-                        <View style={styles.messageTimeContainer}>
-                            <Text style={styles.timeInfo} >{item.time}</Text>
-                        </View>
                     </View>
                 </TouchableWithoutFeedback>
                 {item.opened &&
                     <View style={styles.messageTextContainer}>
                         <Text style={styles.messageContentTitle} >{item.messageContent.title}</Text>
                         <Text style={styles.messageContentText}>{item.messageContent.text}</Text>
-                        <Text style={styles.messageContentTitle} >{item.name}</Text>
                     </View>
                 }
             </Animatable.View>
@@ -119,17 +104,14 @@ export default class WorbleInbox extends React.Component {
         return (
             <Animatable.View animation="fadeIn" style={styles.inboxContainerWrapper}>
                 <BlurView tint="light" intensity={75} style={styles.inboxContainerWrapper} >
-                    {/* <TouchableWithoutFeedback onPress={this.closeInbox.bind(this)}>
-                        <View style={styles.closeContainer}><Text style={styles.closeLabel}>x</Text></View>
-                    </TouchableWithoutFeedback> */}
                     <View style={styles.inboxContainer}>
                         <View style={styles.labelContainer}>
-                            <Text style={styles.labelContainerLabel}>Inbox</Text>
+                            <Text style={styles.labelContainerLabel}>Veripedia</Text>
                         </View>
                         <View style={styles.messagesContainer}>
                             <ScrollView style={styles.messagesScrollContainer}>
                                 <View style={styles.messgesWrapper}>
-                                    {MessagesView}
+                                    {ItemsView}
                                 </View>
                             </ScrollView>
                         </View>
@@ -263,7 +245,7 @@ const styles = StyleSheet.create({
     },
     messageTextContainer: {
         width: '100%',
-        paddingHorizontal: 30,
+        paddingHorizontal: 10,
         paddingVertical: 10,
         paddingTop: 20
     },

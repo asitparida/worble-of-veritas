@@ -28,7 +28,8 @@ const Messages = [
 ];
 
 export default class AppProgress extends React.Component {
-
+    timeout1;
+    timeout2;
     updateProgressInterval;
     constructor(props) {
         super(props);
@@ -45,39 +46,66 @@ export default class AppProgress extends React.Component {
         this.updateProgressInterval = true;
         const indeterminate = this.props.indeterminate || true;
         this.state.progress = 0;
+        const timer = this.props.timer ? this.props.timer : 1000;
+        const currentTimer = Math.floor(timer / 100);
         if (indeterminate) {
             const updateProgress = () => {
                 this.state.progress++;
                 if (this.state.progress >= 100) {
                     this.state.progress = 0;
+                    if (this.props.onComplete) {
+                        this.clearTimers();
+                        this.props.onComplete();
+                    }
                 }
                 if (this.updateProgressInterval) {
-                    this.setState({
-                        progress: this.state.progress
-                    })
-                    requestAnimationFrame(updateProgress);
+                    requestAnimationFrame(() => {
+                        this.setState({
+                            progress: this.state.progress
+                        })
+                    });
+                    if (this.timeout1) {
+                        clearTimeout(this.timeout1);
+                        this.timeout1 = null;
+                    }
+                    this.timeout1 = setTimeout(updateProgress, currentTimer);
                 }
             };
             if (this.updateProgressInterval) {
-                requestAnimationFrame(updateProgress);
+                if (this.timeout2) {
+                    clearTimeout(this.timeout2);
+                    this.timeout2 = null;
+                }
+                this.timeout2 = setTimeout(updateProgress, currentTimer);
             }
         }
     }
 
+    clearTimers() {
+        if (this.timeout1) {
+            clearTimeout(this.timeout1);
+        }
+        if (this.timeout2) {
+            clearTimeout(this.timeout2);
+        }
+    }
+
     componentWillUnmount() {
+        this.clearTimers();
         this.updateProgressInterval = false;
     }
 
 
     render() {
         const progress = this.state.progress
+        const message = this.props.message || 'working ...'
         return (
             <Animatable.View animation="fadeIn" style={styles.progressContainerWrapper}>
                 <BlurView tint="light" intensity={85} style={styles.progressContainerWrapper} >
                     <View style={styles.progressContainer}>
                         <View style={styles.progressHolderContainer}>
                             <View style={styles.progressHolderWrapper}>
-                                <ProgressBar progress={progress} label={'working ...'} width={'50%'} />
+                                <ProgressBar progress={progress} label={message} width={75} />
                             </View>
                         </View>
                     </View>

@@ -1,16 +1,20 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View, Alert } from 'react-native';
-import { AppLoading, Asset, Font, Icon, Permissions, Constants, Notifications } from 'expo';
+import { AppLoading, Asset, Font, Icon, Permissions, Notifications } from 'expo';
 import Landing from './screens/Landing';
 import Home from './screens/Home';
 import WorbleInbox from './components/WorbleInbox';
+import Veripedia from './components/Veripedia';
 import WorbleManager from './services/WorbleManager';
 import Overlay from './screens/Overlay';
 import AriIntroduction from './screens/IntroductionAri';
 import AppProgress from './components/AppProgress';
 import WorbleAppearance from './components/WorbleAppearance';
+import AppConstants from './constants/AppConstants';
+import WorbleGamePlay from './services/WorbleGamePlay';
 
 export default class App extends React.Component {
+	currentAppLoaderData = null;
 	state = {
 		isLoadingComplete: false,
 		showHome: false,
@@ -18,22 +22,49 @@ export default class App extends React.Component {
 		showInbox: false,
 		showAriIntroduction: false,
 		showAppLoader: false,
-		showWorbleAppearanceChanger: false
+		showWorbleAppearanceChanger: false,
+		appLoaderMessage: '',
+		appLoaderDimissTimer: 5000,
+		showVeripedia: false
 	};
 
 	constructor(props) {
 		super(props);
+		WorbleGamePlay.initSubscriptions();
 	}
 
 	componentWillUnmount() {
-		[this.isInboxShownSubscription, this.appProgressLoaderSubscription, this.showWorbleAppearanceSubscription].forEach(x => {
+		WorbleGamePlay.cleanSubscriptions();
+		[
+			this.isInboxShownSubscription,
+			this.appProgressLoaderSubscription,
+			this.showWorbleAppearanceSubscription,
+			this.isVeripediaShownSubscription
+		].forEach(x => {
 			if (x) {
 				x.unsubscribe();
 				x = null;
-			}	
+			}
 		});
 	}
 	async componentWillMount() {
+
+		//CLEANUP
+		let StorageCleanUp = [
+			AppConstants.STORAGE_KEYS.ARI_INTRODUCED,
+			AppConstants.STORAGE_KEYS.FIRST_EGG_PERSONALIZED,
+			AppConstants.STORAGE_KEYS.EGG_STATE,
+			AppConstants.STORAGE_KEYS.PROFILE_INFO
+		];
+		// StorageCleanUp = [];
+		StorageCleanUp.forEach(x => {
+			WorbleManager.deleteStorage(x).then(() => {
+				console.log(`${x} cleaned up - SUCCESS`);
+			}, () => {
+				console.log(`${x} cleaned up - FAILED`);
+			});
+		});
+
 		const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
 		if (status !== 'granted') {
 			await Permissions.askAsync(Permissions.NOTIFICATIONS);
@@ -46,10 +77,32 @@ export default class App extends React.Component {
 				showInbox: state
 			});
 		});
-		this.appProgressLoaderSubscription = WorbleManager.appProgressLoader$.subscribe((state) => {
+		this.isVeripediaShownSubscription = WorbleManager.isVeripediaShown$.subscribe((state) => {
 			this.setState({
-				showAppLoader: state
+				showVeripedia: state
 			});
+		});
+		this.appProgressLoaderSubscription = WorbleManager.appProgressLoader$.subscribe((data) => {
+			if (data && data.state) {
+				this.currentAppLoaderData = data;
+				console.log(this.currentAppLoaderData);
+				this.setState({
+					showAppLoader: true,
+					appLoaderMessage: data.message,
+					appLoaderDimissTimer: data.autoDismiss || 0
+				});
+				// if (data.autoDismiss && data.autoDismiss > 0) {
+				// 	const nextAppState = data.stateOnDimsiss;
+				// 	setTimeout(() => {
+				// 		this.setState({
+				// 			showAppLoader: false
+				// 		})
+				// 		if (nextAppState) {
+				// 			WorbleManager.appState.next(nextAppState);
+				// 		}
+				// 	}, data.autoDismiss);
+				// }
+			}
 		});
 		this.showWorbleAppearanceSubscription = WorbleManager.showWorbleAppearance$.subscribe(state => {
 			this.setState({
@@ -65,23 +118,28 @@ export default class App extends React.Component {
 		});
 	};
 
-	componentDidMount() {
-		// setTimeout(() => {
-		// 	WorbleManager.appProgressLoader.next(true);
-		// 	setTimeout(() => {
-		// 		WorbleManager.appProgressLoader.next(false);
-		// 	}, 6000);
-		// }, 3000);
-	}
-
 	_onStartApp() {
 		// WorbleManager.sendNotification();
-		this.setState({
-			showLanding: false,
-			showAriIntroduction: true
+		WorbleManager.getStorage(AppConstants.STORAGE_KEYS.ARI_INTRODUCED).then((data) => {
+			if (data === 'true') {
+				this.setState({
+					showLanding: false,
+					showHome: true
+				});
+			} else {
+				this.setState({
+					showLanding: false,
+					showAriIntroduction: true
+				});
+			}
+		}, () => {
+			this.setState({
+				showLanding: false,
+				showAriIntroduction: true
+			});
 		});
 	}
-	
+
 	_onAriWelcomeDone() {
 		this.setState({
 			showHome: true,
@@ -89,8 +147,20 @@ export default class App extends React.Component {
 		});
 	}
 
+	appLoderComplete() {
+		if (this.currentAppLoaderData) {
+			this.setState({
+				showAppLoader: false
+			})
+			const { stateOnDimsiss } = this.currentAppLoaderData;
+			if (stateOnDimsiss) {
+				WorbleManager.appState.next(stateOnDimsiss);
+			}
+		}
+	}
+
 	render() {
-		const { showHome, showAriIntroduction, showLanding, showInbox, showAppLoader, showWorbleAppearanceChanger} =  this.state;
+		const { showHome, showAriIntroduction, showLanding, showInbox, showAppLoader, showWorbleAppearanceChanger, appLoaderMessage, appLoaderDimissTimer, showVeripedia } = this.state;
 		if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
 			return (
 				<AppLoading
@@ -111,9 +181,14 @@ export default class App extends React.Component {
 							<WorbleInbox />
 						</View>
 					}
-					{showAppLoader && 
+					{showVeripedia &&
 						<View style={styles.inboxWrapperOuter}>
-							<AppProgress />
+							<Veripedia />
+						</View>
+					}
+					{showAppLoader &&
+						<View style={styles.inboxWrapperOuter}>
+							<AppProgress message={appLoaderMessage} timer={appLoaderDimissTimer} onComplete={this.appLoderComplete.bind(this)} />
 						</View>
 					}
 					{showWorbleAppearanceChanger &&

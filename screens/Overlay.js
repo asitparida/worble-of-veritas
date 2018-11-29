@@ -45,6 +45,18 @@ export default class Overlay extends React.Component {
         }
     }
 
+    onAction(item) {
+        console.log(item);
+        if (item) {
+            if (item.action) {
+                WorbleManager.action.next(item.action);
+            }
+            this.setState({
+                modalVisible: false
+            });
+        }
+    }
+
     render() {
         const { title, menuOptions, modalVisible } = this.state;
         return (
@@ -60,10 +72,12 @@ export default class Overlay extends React.Component {
                             <View style={styles.labelWrapper}>
                                 <Text style={styles.label}>{title}</Text>
                             </View>
-                            { menuOptions.length > 0 && menuOptions.map(x => {
-                                return <View style={styles.actionItemWrapper} key={x.id}>
+                            {menuOptions.length > 0 && menuOptions.map(x => {
+                                return <TouchableWithoutFeedback  onPress={this.onAction.bind(this, x)} key={x.id}>
+                                    <View style={styles.actionItemWrapper}>
                                         <Text style={styles.actionItem}>{x.text}</Text>
-                                    </View>;
+                                    </View>
+                                </TouchableWithoutFeedback>;
                             })}
                         </Animatable.View>
                     </View>
@@ -80,7 +94,7 @@ const styles = StyleSheet.create({
         padding: 40, flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.50)'
     },
     modalContainer: {
-        paddingHorizontal: 0, 
+        paddingHorizontal: 0,
         backgroundColor: 'rgba(255, 255, 255, 1)',
         borderRadius: 10,
         overflow: 'hidden',
@@ -92,7 +106,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         textTransform: 'capitalize',
         fontFamily: 'shaky-hand-some-comic',
-        
+
     },
     actionItemBorder: {
         borderBottomColor: 'rgba(0,0,0,0.1)',
