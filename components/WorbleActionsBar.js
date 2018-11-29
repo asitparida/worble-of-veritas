@@ -66,6 +66,14 @@ export default class WorbleActionsBar extends React.Component {
                     showWorbleActions: false
                 });
                 WorbleManager.isInboxShown.next(true);
+                break;
+            }
+            case 'OPEN_VERIPEDIA': {
+                this.setState({
+                    showWorbleActions: false
+                });
+                WorbleManager.isVeripediaShown.next(true);
+                break;
             }
         }
     }
@@ -92,11 +100,11 @@ export default class WorbleActionsBar extends React.Component {
     render() {
         const { showWorbleActions, worbleActions } = this.state;
         const WorbleViewActions = worbleActions.map(x => {
-            return  <TouchableWithoutFeedback onPress={this.onWorbleAction.bind(this, x)} key={x.id}>
-                <View  style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>{x.text}</Text></View>
+            return <TouchableWithoutFeedback onPress={this.onWorbleAction.bind(this, x)} key={x.id}>
+                <View style={styles.actionBoxExtra}><Text style={styles.actionBoxExtraText}>{x.text}</Text></View>
             </TouchableWithoutFeedback>;
         })
-        let  worbleActionDisabledStyle = worbleActions.length === 0 ? { opacity: 0.20} : {};
+        let worbleActionDisabledStyle = worbleActions.length === 0 ? { opacity: 0.20 } : {};
         return (
             <View style={styles.getStartedContainer}>
                 <TouchableWithoutFeedback>
@@ -113,10 +121,10 @@ export default class WorbleActionsBar extends React.Component {
                         </TouchableWithoutFeedback>
                         {showWorbleActions &&
                             <Animatable.View animation="flipInX" easing="ease-out" iterationCount={1} duration={500} ref={this.handleWorbleActionsListViewRef}>
-                            <View style={{ marginTop: 20, flexDirection: 'column' }}>
-                                {WorbleViewActions}
-                            </View>
-                        </Animatable.View>
+                                <View style={{ marginTop: 20, flexDirection: 'column' }}>
+                                    {WorbleViewActions}
+                                </View>
+                            </Animatable.View>
                         }
                     </View>
                 </TouchableWithoutFeedback>
@@ -129,15 +137,17 @@ export default class WorbleActionsBar extends React.Component {
                             style={styles.actionBoxImage} />
                         <Text style={styles.actionBoxlabel}>Inbox</Text>
                     </View>
-                </TouchableWithoutFeedback>
-                <View style={styles.actionBox}>
-                    <Image
-                        source={
-                            require('../assets/images/book_icon.png')
-                        }
-                        style={styles.actionBoxImage} />
-                    <Text style={styles.actionBoxlabel}>Veripedia</Text>
-                </View>
+                </TouchableWithoutFeedback >
+                <TouchableWithoutFeedback onPress={this.onAction.bind(this, 'OPEN_VERIPEDIA')}>
+                    <View style={styles.actionBox}>
+                        <Image
+                            source={
+                                require('../assets/images/book_icon.png')
+                            }
+                            style={styles.actionBoxImage} />
+                        <Text style={styles.actionBoxlabel}>Veripedia</Text>
+                    </View>
+                    </TouchableWithoutFeedback>
             </View>
         );
     }

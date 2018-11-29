@@ -87,8 +87,7 @@ class WorbleGamePlay {
                     WorbleManager.worbleActions.next(worbleAction);
                     WorbleManager.ariState.next({
                         message: 'You need to incubate your egg. Check your available ACTIONS.',
-                        forceMessageShow: true,
-                        autoDismiss: 3000
+                        forceMessageShow: true
                     });
                 }, 2000);
                 break;
